@@ -56,25 +56,74 @@ bool Overflow(char in[],int key) {
     return false;
 }
 
-bool ConverterCharTo(char s[], long long int *result) {
+int ConverterCharTo(char s[], long long int *result) {
     int lenght = strlen(s);
+    bool flag_dot = true;
+    int mantis = 0;
+    int count = 0;
     if (s[0] == '-') { 
         if (lenght > 20 || (lenght == 20 && Overflow(s, 1))) {
-            return true;
+            return 1;
         }
         for(int i = 1; i < lenght; i++) {
-            *result = *result * 10 + (s[i] - '0');
+            if (s[i] < '0' || s[i] > '9') {
+                if (s[i] == '.') {
+                    flag_dot = false;
+                }
+                else {return 2;}
+            }
+            else if (flag_dot) {
+                *result = *result * 10 + (s[i] - '0');
+            }
+            else if (!flag_dot) {
+                mantis = mantis * 10 + (s[i] - '0');
+                count++;
+            }
         }
+        *result += (mantis * pow((0.1), count));
         *result *= -1;
-        return false;
+        return 0;
     }
     if (lenght > 19 || (lenght == 19 && Overflow(s, 0))) {
-        return true;
+            return 1;
     }
     for(int i = 0; i < lenght; i++) {
-        *result = *result * 10 + (s[i] - '0');
+        if (s[i] < '0' || s[i] > '9') {
+            if (s[i] == '.') {
+                flag_dot = false;
+            }
+            else {return 2;}
+        }
+        else if (flag_dot) {
+            *result = *result * 10 + (s[i] - '0');
+        }
+        else if (!flag_dot) {
+            mantis = mantis * 10 + (s[i] - '0');
+            count++;
+        }
     }
+    *result += (mantis * pow((0.1), count));
     return false;
+}
+
+void ConvCharDouble(char s[], double *result) {
+    int lenght = strlen(s);
+    bool flag_dot = true;
+    int mantis = 0;
+    int count = 0;
+    for (int i = 0; i < lenght; i++) {
+        if (s[i] == '.') {
+            flag_dot = false;
+        }
+        else if (flag_dot) {
+            *result = *result * 10 + (s[i] - '0');
+        }
+        else if (!flag_dot) {
+            mantis = mantis * 10 + (s[i] - '0');
+            count++;
+        }
+    }
+    *result += (mantis * pow((0.1), count));
 }
 
 void Sum(long long int sum_of, long long int *result) {
@@ -107,8 +156,12 @@ int main(int argc, char *argv[]) {
         return 1;
     }
     long long int temp = 0;
-    if (ConverterCharTo(argv[1], &temp)) {
-        printf("Error: Overflow");
+    if (ConverterCharTo(argv[1], &temp) == 1) {
+        printf("Error: Overflow.");
+        return 2;
+    }
+    else if (ConverterCharTo(argv[1], &temp) == 2) {
+        printf("Error: Invalid input type.");
         return 2;
     }
 /*-----------------------------------------HFunc------------------------------------------*/
