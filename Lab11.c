@@ -136,7 +136,6 @@ void Choice(long long int temp, char key) {
             }
             else {printf("%lld is compound", temp);}
             Terminate(&primes);
-            Terminate(&primes);
         }
     }
     else if (key == 's') {
@@ -305,32 +304,3 @@ int main(int argc, char *argv[]) {
     }
     Choice(temp, argv[2][1]);
     return 0;
-
-    
-/*-----------------------------------------SFunc------------------------------------------*/
-        /*int lenght = 0;
-        long long int buff = llabs(temp);
-        while (buff > 0) {
-            buff /= 10;
-            lenght++;
-        }
-        buff = llabs(temp);
-        char *string = (char*)malloc(lenght*2 + 1);
-        string[lenght * 2] = '\0';
-        for(int i = 0; i < lenght * 2; i += 2) {
-            string[i] = ' ';
-            string[i + 1] = (buff % 10) + '0';
-            buff /= 10;
-        }
-        if (temp < 0) {
-            string = (char*)realloc(string, lenght*2 + 3);
-            string[lenght * 2 + 2] = '\0';
-            string[lenght * 2 ] = ' ';
-            string[lenght * 2 + 1] = '-';
-        }
-        printf("%s", strrev(string));
-        free(string);
-    }*/
-
-/*-----------------------------------------FFunc------------------------------------------*/
-}
