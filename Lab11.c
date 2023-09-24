@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <stdbool.h>
 #include <string.h>
 #include <math.h>
 #include "Procedure.h"
@@ -10,10 +9,7 @@ bool InputCheck(int argc, char* argv[], long long int *temp) {
     if (argc != 3 || (*argv[2] != '-' && *argv[2] != '/') || (strlen(argv[2]) != 2)) {
         return true;
     }
-    else if (ConverterCharTo(argv[1], temp)) {
-        return true;
-    }
-    return false;
+    return ConverterCharTo(argv[1], temp);
 }
 
 void CreateVector(VectorInt* v) {
@@ -23,17 +19,24 @@ void CreateVector(VectorInt* v) {
 }
 
 bool IfEmptyVector(VectorInt* v) {
-    if (v->num_of_el == 0) 
-        return true;
-    return false;
+    return v->num_of_el; 
 }
 
 void Adder(VectorInt* v, int new_value) {
+    VectorInt temp;
+    CreateVector(&temp);
     if (v->mem_capacity == v->num_of_el) {
-        v->el = (int*)realloc(v->el, sizeof(int) *(++v->mem_capacity));
+        temp.num_of_el = v->num_of_el;
+        temp.mem_capacity = ++v->mem_capacity;
+        temp.el = realloc(v->el, sizeof(int) * (temp.mem_capacity));
+        if (temp.el != NULL) {
+            *(temp.el + temp.num_of_el) = new_value;
+            v->num_of_el++;
+        }   
+        v->el = realloc(temp.el, sizeof(int) * (v->mem_capacity));
     }
-    *(v->el + v->num_of_el) = new_value;
-    v->num_of_el++;
+    Terminate(&temp);
+    printf("yes");
 }
 
 void VectorPrint(VectorInt* v) {
@@ -45,6 +48,9 @@ void VectorPrint(VectorInt* v) {
 }
 
 void Terminate(VectorInt* v) {
+    v->mem_capacity = 0;
+    v->num_of_el = 0;
+    v->el = NULL;
     free(v);
 }
 
@@ -142,8 +148,7 @@ void Choice(long long int temp, char key) {
         char *string = (char*)malloc(1);
         string[0] = '\0';
         SFunc(temp, &string);
-        //printf("%d", strlen(string));
-        printf("\n%s", string);
+        printf("%s", string);
         free(string);
     }
     else if (key == 'e') {
@@ -196,14 +201,16 @@ bool PFunc(long long int temp, VectorInt *primes) {
     long long int num = 2;
     while(num <= temp) {
         bool flag = 1;
-        if (!IfEmptyVector(primes)) {
+        if (IfEmptyVector(primes)) {
             for(int i = 0; i < primes->num_of_el; i++) {
                 if (num % primes->el[i] == 0) {
+                    //printf("%d", primes->el[i]);
                     flag = 0;
                     break;
                 }
             }
         }   
+        //printf("murder");
         if (flag) {
             Adder(primes, num);
         }
@@ -304,3 +311,6 @@ int main(int argc, char *argv[]) {
     }
     Choice(temp, argv[2][1]);
     return 0;
+
+    
+}
