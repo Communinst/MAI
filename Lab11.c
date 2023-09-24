@@ -55,32 +55,39 @@ void Terminate(VectorInt* v) {
 }
 
 bool Overflow(char in[],int key) {
+    bool eq = true;
     if (!key) {
         for (int i = 0; i < 19; i++) {
-            printf("%d -> %d\n", (in[i] - '0'), (bound_pos[i] - '0'));
-            if ((in[i] - '0') > (bound_pos[i] - '0')) {
+            if (in[i] > bound_pos[i] && eq) {
                 return true;
+            }
+            if (in[i] < bound_pos[i]) {
+                eq = false;
             }
         }
         return false;
     }
     for (int i = 0; i < 19; i++) {
-        if (in[i + 1] - '0' > bound_pos[i] - '0') {
+        if (in[i + 1] > bound_pos[i] && eq) {
             return true;
+        }
+        if (in[i] < bound_pos[i]) {
+            eq = false;
         }
     }
     return false;
 }
 
 int ConverterCharTo(char s[], long long int *result) {
-    int lenght = strlen(s);
+    int Length = strlen(s);
     int mantis = 0;
     int count = 0;
+    
     if (s[0] == '-') { 
-        if (lenght > 20 || (lenght == 20 && Overflow(s, 1))) {
+        if (Length > 20 || (Length == 20 && Overflow(s, 1))) {
             return 1;
         }
-        for(int i = 1; i < lenght; i++) {
+        for(int i = 1; i < Length; i++) {
             if (s[i] < '0' || s[i] > '9') {
                 return 2;
             }
@@ -89,10 +96,10 @@ int ConverterCharTo(char s[], long long int *result) {
         *result *= -1;
         return 0;
     }
-    if (lenght > 19 || (lenght == 19 && Overflow(s, 0))) {
+    if (Length > 19 || (Length == 19 && Overflow(s, 0))) {
             return 1;
     }
-    for(int i = 0; i < lenght; i++) {
+    for(int i = 0; i < Length; i++) {
         if (s[i] < '0' || s[i] > '9') {
             return 2;
         }
@@ -117,11 +124,11 @@ void Factorial(long long int num, unsigned long long int *result) {
     *result *= num;
 }
 
-void IntLenght(long long int temp, int *lenght) {
+void IntLength(long long int temp, int *Length) {
     long long int buff = llabs(temp);
     while (buff > 0) {
         buff /= 10;
-        *lenght += 1;
+        *Length += 1;
     }
 }
 
@@ -220,26 +227,28 @@ bool PFunc(long long int temp, VectorInt *primes) {
 }
 
 void SFunc(long long int temp, char *string[]) {
-    int lenght = 0;
-    IntLenght(temp, &lenght);
+    int Length = 0;
+    IntLength(temp, &Length);
     long long int buff = llabs(temp);
-    char *tmp = (char*)malloc(lenght*2);
-    tmp[lenght*2 - 1] = '\0';
-    //printf("%d -> %d", strlen(*string), lenght);
+    char *tmp = (char*)malloc(Length*2);
+    tmp[Length*2 - 1] = '\0';
+    //printf("%d -> %d", strlen(*string), Length);
     if (temp >= 0) {
-        tmp[lenght * 2] = '\0';
-        for(int i = lenght * 2 - 2; i >= 0; i--) {
+        char *tmp = (char*)malloc(Length*2);
+        tmp[Length*2 - 1] = '\0';
+        for(int i = Length * 2 - 2; i >= 0; i--) {
             tmp[i] = (buff % 10) + '0';
             if ((--i) > 0) {
                 tmp[i] = ' ';
             }
             buff /= 10;
         }
+        *string = tmp;
     }
     else {
-        tmp = (char*)realloc(tmp, (lenght*2 + 2) * sizeof(char));
-        tmp[lenght * 2 + 1] = '\0';
-        for(int i = lenght * 2; i >= 1; i--) {
+        char *tmp = (char*)malloc(Length*2 + 2);
+        tmp[Length * 2 + 1] = '\0';
+        for(int i = Length * 2; i >= 1; i--) {
             tmp[i] = (buff % 10) + '0';
             if ((--i) > 0) {
                 tmp[i] = ' ';
@@ -247,8 +256,9 @@ void SFunc(long long int temp, char *string[]) {
             buff /= 10;
         }
         tmp[0] = '-';
+        *string = tmp;
     }
-    *string = tmp;
+    
 }
 
 bool EFunc(long long int temp) {
