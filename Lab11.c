@@ -22,21 +22,24 @@ bool IfEmptyVector(VectorInt* v) {
     return v->num_of_el; 
 }
 
-void Adder(VectorInt* v, int new_value) {
-    VectorInt temp;
-    CreateVector(&temp);
-    if (v->mem_capacity == v->num_of_el) {
-        temp.num_of_el = v->num_of_el;
-        temp.mem_capacity = ++v->mem_capacity;
-        temp.el = realloc(v->el, sizeof(int) * (temp.mem_capacity));
-        if (temp.el != NULL) {
-            *(temp.el + temp.num_of_el) = new_value;
-            v->num_of_el++;
-        }   
-        v->el = realloc(temp.el, sizeof(int) * (v->mem_capacity));
+int Adder(VectorInt *v, int new_value)
+{
+    if (v->mem_capacity == v->num_of_el)
+    {
+        v->mem_capacity *= 2;
+        int *temp = (int*)realloc(v->el, sizeof(int) * v->mem_capacity);
+
+        if (!temp)
+        {
+            return 1;
+        }
+        
+        v->el = temp;
     }
-    Terminate(&temp);
-    printf("yes");
+
+    v->el[v->num_of_el++] = new_value;
+    
+    return 0;
 }
 
 void VectorPrint(VectorInt* v) {
@@ -132,6 +135,17 @@ void IntLength(long long int temp, int *Length) {
     }
 }
 
+void prepareTable(int table[10][10], long long int number) {
+    int x = 0;
+    for (int i = 0; i < 10; i++) {
+        x = (i + 1);
+        for (int j = 0; j < number; j++) {
+            table[i][j] = x;
+            x *= (i + 1);
+        }
+    }
+}
+
 void Choice(long long int temp, char key) {
     if (key == 'h') {
         VectorInt divisibles;
@@ -191,7 +205,11 @@ void HFunc(long long int temp, VectorInt *divisibles) {
     else {
         for (long long int i = temp; i <= 100; i++) {
             if (i % temp == 0) {
-                Adder(divisibles, i);
+                if (Adder(divisibles, i)) {
+                    printf("Bad allocation");
+                    return;
+                }
+                
             }
         }
         if (!(divisibles->num_of_el)) {
@@ -219,7 +237,10 @@ bool PFunc(long long int temp, VectorInt *primes) {
         }   
         //printf("murder");
         if (flag) {
-            Adder(primes, num);
+            if (Adder(primes, num)) {
+                printf("Bad allocation");
+                return false;
+            }
         }
         num++;
     }
@@ -265,26 +286,17 @@ bool EFunc(long long int temp) {
     if (temp > 10 || temp < -1) {
         return false;
     }
-    printf("  ");
-    for (int i = -1; i <= temp; i++) {
-        printf("%d ", i);
-    }
-    printf("\n");
-    printf("--");
-    for (int i = -1; i <= temp; i++) {
-        printf("--");
-    }
-    printf("\n");
-    int i = 0;
-    while (i != 10) {
-        i++;
-        printf("%d|", i);
-        int result = i;
-        for (int count = -1; count <= temp; count++) {
-             printf("%lf ", pow(result, count));
+    int table[10][10];
+    prepareTable(table, temp);
+    for (int i = 0; i < 10; i++) {
+        for (int j = 0; j < temp; j++) {
+            int base = i + 1;
+            int grade = j + 1;
+            printf("\t%d in %d grade equals to: %d\n", base, grade, table[i][j]);
         }
-        printf("|\n");
+        printf("---------------------------\n");
     }
+
     return true;
 }
 
