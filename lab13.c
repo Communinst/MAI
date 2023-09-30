@@ -7,6 +7,11 @@
 
 
 
+void usage(){
+    printf("./exe [- or /][q] EPS coef1 coef2 coef3\n");
+    printf("./exe [- or /][m] int_num1 int_num2\n");
+    printf("./exe [- or /][t] EPS side1 side2 side3\n");
+}
 
 /*---------------------------------------Basic--------------------------------------------*/
 
@@ -330,6 +335,7 @@ int main(int argc, char *argv[]) {
             break;
         case INVALID:
             printf("You violated the input rules!");
+            usage();
             break;
         case DIVISIBLE:
             printf("The first entered value divisible by the second one!\n");
