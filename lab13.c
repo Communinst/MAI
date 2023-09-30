@@ -37,6 +37,7 @@ EXIT_CODE adder(double EPS, double a, double b, double c, vectorInt *v)
         v->el = temp;
     }
     double discriminant = 0;
+    printf("%llf -> %llf -> %llf", a, b, c);
     v->el[v->num_of_el].coefs[0] = a;
     v->el[v->num_of_el].coefs[1] = b;
     v->el[v->num_of_el].coefs[2] = c;
@@ -97,15 +98,18 @@ EXIT_CODE stringValidDouble(int argc, char* argv[]) {
     int i = 2;
     while (i < argc) {
         bool point = false;
-        
+        bool minus = false;
         for (int step = 0; step < strlen(argv[i]); step++) {
             
-            if (((argv[i][step] < '0' || argv[i][step] > '9') && argv[i][step] != '.') || ((argv[i][step] == '.') && (point))) {
+            if (((argv[i][step] < '0' || argv[i][step] > '9') && argv[i][step] != '.' && argv[i][step] != '-') || ((argv[i][step] == '.') && (point)) || ((argv[i][step] == '-') && (minus))) {
                 return INVALID;
             }
             
             if (argv[i][step] == '.') {
                 point = true;
+            }
+            else if (argv[i][step] == '.') {
+                minus = true;
             }
         
         }
@@ -138,7 +142,6 @@ EXIT_CODE equalityOfDoubles(double EPS, double coef1, double coef2, double coef3
     if ((fabs(coef1 - coef2) <= EPS) && (fabs(coef1 - coef3) <= EPS) && (fabs(coef2 - coef3) <= EPS)) {
         return THE_ONLY_UNIQUE;
     }
-    printf("\n%llf -> %llf\n", coef1, coef2);
     if (fabs(coef1 - coef2) <= EPS) {
         return FIRST_SECOND;
     }
@@ -153,10 +156,10 @@ EXIT_CODE equalityOfDoubles(double EPS, double coef1, double coef2, double coef3
 
 
 EXIT_CODE combinationControl(double EPS, double coef1, double coef2, double coef3, vectorInt *v) {
+    double combination_arr[3] = {coef1, coef2, coef3};
     switch (equalityOfDoubles(EPS, coef1, coef2, coef3))
     {
         case ALL_UNIQUE:
-            double combination_arr[3] = {coef1, coef2, coef3};
             for (int i = 0; i < 3; i++) {
                 if (adder(EPS, combination_arr[i], combination_arr[(i + 1) % 3], combination_arr[(i + 2) % 3], v) != OK) {
                     return BAD_ALLOC;
@@ -344,8 +347,6 @@ int main(int argc, char *argv[]) {
             printf("Memory handling error!1!");
             break;
         case OK:
-
-            printf("\n%d\n", solutions.num_of_el);
             if (ifEmptyVector(&solutions)) {
                 vectorPrint(&solutions);
             }
