@@ -37,6 +37,9 @@ typedef struct vectorInt
     int mem_capacity;
 } vectorInt;
 
+
+void usage();
+
 void createVector(vectorInt* v);
 
 bool ifEmptyVector(vectorInt* v);
