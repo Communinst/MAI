@@ -3,7 +3,7 @@
 
 
 typedef enum {
-    OK = 1,
+    OK = 0,
     INVALID,
     TOO_MANY,
     TOO_FEW,
@@ -18,6 +18,7 @@ typedef enum {
     ALL_UNIQUE,
     BAD_ALLOC,
     LESS,
+    E_NOTATION,
 } EXIT_CODE;
 
 
@@ -37,9 +38,6 @@ typedef struct vectorInt
     int mem_capacity;
 } vectorInt;
 
-
-void usage();
-
 void createVector(vectorInt* v);
 
 bool ifEmptyVector(vectorInt* v);
@@ -51,9 +49,13 @@ EXIT_CODE vectorPrint(vectorInt *v);
 void terminate(vectorInt* v);
 
 
-EXIT_CODE stringValidDouble(int argc, char* argv[]);
+EXIT_CODE string_valid_pos_double(int argc, char* argv[]);
 
-EXIT_CODE stringValidInt (int argc, char* argv[]);
+EXIT_CODE string_valid_neg_double(int argc, char* argv[]);
+
+EXIT_CODE string_valid_int (int argc, char* argv[]);
+
+EXIT_CODE e_notation (char* argv);
 
 EXIT_CODE triangleExistence(double EPS, double side1, double side2, double side3);
 
