@@ -5,8 +5,7 @@
 
 void usage();
 
-void convCharDouble(char s[], double *result, int *accuracy); 
-void stringToDouble(double *EPS, int *accuracy);
+bool convCharDouble(char s[], double *result, int *accuracy); 
 void choice(double EPS, int accuracy, char key, double *limit, double *row, double *x);
 
 void factorial(int num, unsigned long long int *result);

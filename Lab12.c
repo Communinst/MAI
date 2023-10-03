@@ -10,15 +10,9 @@ const double pi = 3.14159265;
 
 
 /*---------------------------------------Basic--------------------------------------------*/
-void machineEPS(double *machine_eps) {
-    while (1 + *machine_eps / 2.0 > 1.0)
-    {
-        *machine_eps /= 2.0;
-    }
-}
 
 void usage() {
-    printf("./exe [epsilon_value] [accuracy_value]\n");
+    printf("./exe [epsilon_value]\n");
 }
 
 /*----------------------------------------------------------------------------------------*/
@@ -26,24 +20,84 @@ void usage() {
 
 /*-------------------------------------------Converters-----------------------------------*/
 
-void convCharDouble(char s[], double *result, int *count) {
+bool convCharDouble(char s[], double *result, int *count) {
     int lenght = strlen(s);
     bool flag_dot = true;
     int mantis = 0;
     *count = 0;
-    for (int i = 0; i < lenght; i++) {
-        if (s[i] == '.') {
-            flag_dot = false;
+    if (strstr(s, "e")) {
+        //printf("moron");
+        if (s[0] == '1') {
+            
+            int i = 0;
+            int buff = 0;
+            while(s[i] != 'e') {
+                if (s[i] > '0' || s[i] < 9){
+                    buff *= 10;
+                    buff += s[i] - '0'; 
+                    i++;
+                }
+                else {
+                    return true;
+                }
+            }
+            
+            int pos = 1;
+            int grade = 0;
+            if (s[++i] != '-' && (s[i] < '0' || s[i] > '9')) {
+                return true;
+            }
+            if (s[i] == '-') {
+                pos = -1;
+                i++;
+            }
+            while (i != strlen(s)) {
+                if (s[i] >= '0' && s[i] <= '9'){
+                    grade *= 10;
+                    
+                    grade += s[i] - '0';
+                    i++;
+                }
+                else {
+                    return true;
+                }
+            }
+            if (abs(grade) > 15) {
+                return true;
+            }
+            grade *= pos;
+            *result = buff * pow(10, grade);
+            *count = abs(grade);
+            return false;
         }
-        else if (flag_dot) {
-            *result = *result * 10 + (s[i] - '0');
-        }
-        else if (!flag_dot) {
-            mantis = mantis * 10 + (s[i] - '0');
-            *count += 1;
+        else {
+            return true;
         }
     }
-    *result += (mantis * pow((0.1), *count));
+    else {
+        for (int i = 0; i < lenght; i++) {
+            if (s[i] > '0' && s[i] < '9'){
+                if (s[i] == '-') {
+                    return true;
+                }
+                else if (s[i] == '.') {
+                    flag_dot = false;
+                }
+                else if (flag_dot) {
+                    *result = *result * 10 + (s[i] - '0');
+                }
+                else if (!flag_dot) {
+                    mantis = mantis * 10 + (s[i] - '0');
+                    *count += 1;
+                }
+            }  
+            else {
+                return true;
+            }
+        }
+        *result += (mantis * pow((0.1), *count));
+        return false;
+    }
 }
 
 /*----------------------------------------------------------------------------------------*/
@@ -396,29 +450,33 @@ void choice(double EPS, int accuracy, char key, double *limit, double *row, doub
             eFuncPrint(EPS, limit, row, x, accuracy);
             break;
         case 'p':
-            while (accuracy > 8) {
+            if (accuracy > 8 && EPS < 1) {
                 printf("Invalid EPS value: <= 1e-8\n");
+                break;
             }
             piFunc(EPS, limit, row, x);
             piFuncPrint(EPS, limit, row, x, accuracy);        
             break;
         case 'l':
-            while (accuracy > 8) {
-                printf("Invalid EPS value: <= 1e-8");
+            if (accuracy > 8 && EPS < 1) {
+                printf("Invalid EPS value: <= 1e-8\n");
+                break;
             }
             ln2Func(EPS, limit, row, x);
             ln2FuncPrint(EPS, limit, row, x, accuracy);
             break;
         case 's':
-            while (accuracy > 15) {
+            if (accuracy > 15 && EPS < 1) {
                 printf("Invalid EPS value: <= 1e-15\n");
+                break;
             }
             sqrt2Func(EPS, limit, row, x);
             sqrt2FuncPrint(EPS, limit, row, x, accuracy);
             break;
         case 'g':
-            while (accuracy > 7) {
-                printf("Invalid EPS value: <= 1e-8");
+            if (accuracy > 7 && EPS < 1) {
+                printf("Invalid EPS value: <= 1e-7\n");
+                break;
             }
             gammaFunc(EPS, limit, row, x);
             gammaFuncPrint(EPS, limit, row, x, accuracy);
@@ -436,12 +494,16 @@ int main(int argc, char *argv[]) {
     }
     double EPS = 0.0;
     int accuracy = 0;
-    convCharDouble(argv[1], &EPS, &accuracy);
+    if (convCharDouble(argv[1], &EPS, &accuracy)) {
+        printf("Invalid input!");
+        return 1;
+    }
 
     double limit = 0.0;
     double row = 0.0;
     double equation = 0.0;
-    printf("%d", accuracy);
+    //printf("%llf", EPS);
+    //printf("%d\n", accuracy);
     
     menu(EPS, accuracy, &limit, &row, &equation);
     return 0;
