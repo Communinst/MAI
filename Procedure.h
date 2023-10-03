@@ -13,9 +13,18 @@ void usage ();
 
 EXIT_CODE input_check(int argc, char **argv);
 
-EXIT_CODE file_check(char *argv, FILE* in);
+EXIT_CODE file_check(char *argv, FILE** in);
 
-EXIT_CODE extention_check(char *argv);
+EXIT_CODE extention_check (char *argv);
+
+EXIT_CODE flag_handling (char *c, FILE* in, FILE* out);
+
+
+EXIT_CODE i_func(FILE *in, FILE *out);
+
+EXIT_CODE s_func (FILE *in, FILE *out);
+
+EXIT_CODE a_func (FILE *in, FILE *out);
 
 
 #endif
