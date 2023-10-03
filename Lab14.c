@@ -10,7 +10,7 @@
 void usage () 
 {
 
-    printf("moron");
+    printf("error");
 
 }
 
