@@ -1,123 +1,148 @@
-#include <stdio.h>
+
 #include <stdlib.h>
-#include <stdbool.h>
+#include<stdio.h>
 #include <string.h>
-#include <math.h>
 #include "Procedure.h"
 
 
 
-
-void createVector(vector_char* v)
+void usage () 
 {
-    v->num_of_el = 1;
-    v->el = NULL;
-    v->mem_capacity = 1;
+
+    printf("moron");
+
 }
 
-bool ifEmptyVector(vector_char* v) 
+EXIT_CODE input_check(int argc, char **argv)
 {
-    return v->num_of_el; 
-}
-
-EXIT_CODE adder_char(char new_value, vector_char *v)
-{
-    if (v->mem_capacity == v->num_of_el)
+    
+    char *step = argv[1];
+    
+    if (*step != '-' && *step != '/') 
     {
-        v->mem_capacity *= 2;
-        char *temp = (char*)realloc(v->el, sizeof(char) * v->mem_capacity);
-
-        if (!temp)
-        {
-            return BAD_ALLOC;
-        }
-        
-        v->el = temp;
-    }
-    v->num_of_el++;
-    v->el[v->num_of_el] = new_value;
-    v->el[v->num_of_el + 1] = '\0';
-
-    
-}
-
-EXIT_CODE vector_print(vector_char *v) {
-    
-}
-
-void terminate(vector_char* v) {
-    v->mem_capacity = 0;
-    v->num_of_el = 0;
-    v->el = NULL;
-    free(v);
-}
-
-
-
-
-EXIT_CODE file_handling(FILE *f, va_list symbol, bool acquired, char **argv) {
-    FILE *output;
-    if (acquired) {
-        output = fopen(argv[3], "w");
-    }
-    
-
-}
-EXIT_CODE path_check(char *s) {
-    if (syntacsis_check(s) == OK) {
-        
-    }
-    return syntacsis_check(s)
-}
-
-
-EXIT_CODE syntacsis_check(char *s) {
-    char* extention = (char*)malloc(sizeof(char) * 1);
-    for (int i = strlen(s) - 1; i >= 0; i++) {
-        if (s[i] == '.') {
-            break;
-        }
-        if (adder(s[i], extention) == BAD_ALLOC) {
-            return BAD_ALLOC;
-        }
-    }
-    if (strcmp(extention, "txt")) {
         return INVALID;
     }
+
+    FILE* input = NULL;
+
+    if (file_check(argv[2], input) != OK) 
+    {
+        return INVALID;
+    }
+
+    *step++;
+    FILE* output = NULL;
+    if (step == 'n') 
+    {
+        if (argc != 4) {
+            return INVALID;
+        }
+        output = fopen(argv[3], "w");
+    }
+    else if (argc != 3) 
+    {
+        return INVALID;
+    }
+    output = fopen(strcat("out_", argv[2]), "w");
+    fseek(input, SEEK_SET, 0);
+    fseek(output, SEEK_SET, 0);
+
+    *step++;
+    if (flag_handling(step, input, output) != OK) 
+    {
+        return INVALID;
+    }
+    fclose(input);
     return OK;
 
 }
 
-/*---------------------------------------Basic--------------------------------------------*/
 
-EXIT_CODE input_check(int argc, char **argv) 
-{   
-    //if
-    FILE *input = fopen(argv[2], "r");
-    if (input == NULL) {
-        return FILE_NULL;
-    }
-    if(argc < 3)
-        return INVALID;
-    char *f = argv[1];
-    if (*f != '-' || *f != '/') {
+EXIT_CODE file_check(char *argv, FILE* in) 
+{
+    
+    if (strlen(argv) < 5)
+    {
         return INVALID;
     }
-    f++;
-    bool acquired = false;
-    if (*f == 'n') {
-        f++;
-        acquired = true;
-    }
-    if(argc != (3 + acquired)) {
+
+    if (strchr(argv, '/') || strchr(argv, '?') || strchr(argv, '\\') || strchr(argv, ':') || strchr(argv, '"') || strchr(argv, '<')|| strchr(argv, '>') || strchr(argv, '|'))
+    {
         return INVALID;
     }
-    fileHandling(input, f, acquired, argv);
+
+    if (extention_check(argv) != OK) 
+    {   
+        return INVALID;
+    }
+
+    in = fopen(argv, "r");
+    if (in == NULL) 
+    {
+        return INVALID;
+    }
+    return OK;
 }
 
-/*----------------------------------------------------------------------------------------*/
+EXIT_CODE extention_check (char *argv) 
+{
 
-int main(int argc, char *argv[]) {
+    if (argv[strlen(argv) - 4] != '.') 
+    {
+        return INVALID;
+    }
+
+    char buff[4] = {'\0'};
+    for (int i = 1; i <= 3; i++) 
+    {
+        buff[i - 1] = argv[strlen(argv) - i];
+    }
+
+    return (strcmp(buff, "txt"));
+}
+
+EXIT_CODE flag_handling (char *c, FILE* in, FILE* out) 
+{
     
+    switch (*c)
+    {
+
+    case 'i':
+        return i_func()
+        break;
+
+    case 'a':
+        break;
+    
+    case 's':
+        break;
+
+    default:
+        break;
+
+    }
+
+}
+
+
+EXIT_CODE main (int argc, char **argv) {
+
+    if (argc < 3) {
+        usage();
+        return INVALID;
+    }
+    switch (input_check(argc, argv))
+    {
+    case OK:
+        printf("cool");
+        break;
+    
+    case INVALID:
+        printf("IDIOT!");
+        break;
+
+    default:
+        break;
+    }
 
 }
