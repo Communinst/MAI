@@ -10,7 +10,13 @@
 void usage () 
 {
 
-    printf("error");
+    printf("\n./[name_of_exe] [- or /][n option][key] input_file.txt [output_file.txt]\n");
+    printf("                             Key list:\n");
+    printf("           n in key allows you to determinate output file\n");
+    printf("          i - will count all latin letter for a single line\n");
+    printf("             s - will count all signs for a single line\n");
+    printf("a - will replace every symbol except of digits with it's ASCII hex code\n");
+
 
 }
 
@@ -46,14 +52,20 @@ EXIT_CODE input_check(int argc, char **argv)
         return INVALID;
     }
 
-    char out_name[strlen(argv[2]) + 4];
+    char *filename;
+    path_handling(argv[2], &filename);
+    char out_name[strlen(filename) + 4];
     strcpy (out_name, "out_");
-    output = fopen(strcat(out_name, argv[2]), "w");
-
+    output = fopen(strcat(out_name, filename), "w");
+    if (!output)
+    {
+        return NO_FILE;
+    }
     if (flag_handling(step, input, output) != OK) 
     {   
         return INVALID;
     }
+    free(filename);
     fclose(input);
     return OK;
 
@@ -68,7 +80,7 @@ EXIT_CODE file_check(char *argv, FILE** in)
         return INVALID;
     }
 
-    if (strchr(argv, '/') || strchr(argv, '?') || strchr(argv, '\\') || strchr(argv, ':') || strchr(argv, '"') || strchr(argv, '<')|| strchr(argv, '>') || strchr(argv, '|'))
+    if (strchr(argv, '/') || strchr(argv, '?') || strchr(argv, '<')|| strchr(argv, '>') || strchr(argv, '|'))
     {
         return INVALID;
     }
@@ -80,7 +92,7 @@ EXIT_CODE file_check(char *argv, FILE** in)
 
     *in = fopen(argv, "r");
     if (in == NULL) 
-    {
+    {   
         return INVALID;
     }
     return OK;
@@ -102,6 +114,44 @@ EXIT_CODE extention_check (char *argv)
 
     return (strcmp(buff, "txt"));
 }
+
+EXIT_CODE path_handling (char *argv, char **result)
+{
+
+    if (strchr(argv, 92))
+    {
+        char *final_name = (char*)malloc(sizeof(char) * 1);
+        if (!final_name) 
+        {
+            return BAD_ALLOC;
+        }
+        final_name[0] = '\0';
+        int amount = 1;
+        char *step = argv + strlen(argv) - 1;
+        while (*step != '\\')
+        {
+            if (amount == strlen(final_name))
+            {
+                char *temp = (char*)realloc(final_name, sizeof(char) * (amount * 2));
+                final_name = temp;
+                free(temp);
+            }
+            final_name[amount - 1] = *step;
+            final_name[amount] = '\0';
+            amount++;
+            step = argv + strlen(argv) - amount;
+
+        }
+        *result = strrev(final_name);
+    }
+    else 
+    {
+        *result = argv;
+    }
+    return OK;
+
+}
+
 
 EXIT_CODE flag_handling (char *c, FILE* in, FILE* out) 
 {
@@ -129,6 +179,8 @@ EXIT_CODE flag_handling (char *c, FILE* in, FILE* out)
 }
 
 
+
+
 EXIT_CODE i_func (FILE *in, FILE *out)
 {
 
@@ -136,7 +188,8 @@ EXIT_CODE i_func (FILE *in, FILE *out)
     fseek(out, 0, SEEK_SET);
     int latin = 0;
     char c;
-    while ((c = fgetc(in)) != EOF) {
+    while ((c = fgetc(in)) != EOF) 
+    {
         
         if (c == '\n')
         {
@@ -212,13 +265,20 @@ int main (int argc, char **argv) {
     switch (input_check(argc, argv))
     {
         case OK:
-            printf("cool");
+            printf("SUCCESS!");
             break;
         
         case INVALID:
-            printf("IDIOT!");
+            printf("Invalid input\n");
+            usage();
+            break;
+        case BAD_ALLOC:
+            printf("Memory fault!");
             break;
 
+        case NO_FILE:
+            printf("Sorry, file can't be located. Be certain if it exists");
+            break;
         default:
             break;
     }
