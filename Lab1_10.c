@@ -74,7 +74,6 @@ EXIT_CODE input_control ()
         default:
             break;
     }
-
     do
     {
         if (double_check (unit, &num, base))
@@ -104,26 +103,19 @@ EXIT_CODE input_control ()
             default:
                 break;
         }
-    
+
     } while (run);
 
     free(unit);
-    
     char *result;
-    printf("%d\n", max);
-    conv_tenth_any(max, 9, &result);
-    printf("%s\n", result);
-    free(result);
-    conv_tenth_any(max, 18, &result);
-    printf("%s\n", result);
-    free(result);
-    conv_tenth_any(max, 27, &result);
-    printf("%s\n", result);
-    free(result);
-    conv_tenth_any(max, 36, &result);
-    printf("%s\n", result);
-    free(result);
-
+    printf("%d maximum number in: \n", max);
+    for (int i = 1; i <= 4; i++)
+    {
+        conv_tenth_any(max, (9 * i), &result);
+        printf("%dth: %s\n",(9 * i), result);
+        free(result);
+        result = NULL;
+    }
 
     return OK;
 
@@ -167,7 +159,6 @@ EXIT_CODE string_analysis (char **result)
         return STOP;
     }
     *result = str_base;
-    free(str_base);
     return OK;
 
 }
@@ -214,7 +205,6 @@ EXIT_CODE acquire_string (char **result)
         amount++;
     }
     *result = input;
-    free(input);
     return OK;
     
 }
@@ -222,50 +212,38 @@ EXIT_CODE acquire_string (char **result)
 EXIT_CODE conv_tenth_any (long int num, long int base, char **result)
 {
 
-
-    char *final_str = (char*)malloc(sizeof(char) * 1);
-    if (!final_str)
+    int size = 1;
+    long int buff = num;
+    do 
     {
-        return BAD_ALLOC;
-    }
-    final_str[0] = '\0';
+        size++;
+    } while (buff /= base);
 
-    
-    int amount = 1;
+    char *answer = (char*)malloc(sizeof(char) * size);
+    answer[size - 1] = '\0';
 
-    do
-    {   
-        if (strlen(final_str) == amount)
-        {
-
-            char *temp = (char*)realloc(final_str, sizeof(char) * (amount * 2));
-
-            if (!temp)
-            {
-                return BAD_ALLOC;
-            }
-
-            final_str = temp;
-            free(temp);
-
-        }
+    for (int i = size - 2; i >= 0; i--)
+    {
 
         int residue = num % base;
         if (residue >= 10)
         {
-            final_str[amount - 1] = (55 + residue);
-        }
-        else {
-            final_str[amount - 1] = residue + '0';
-        }
-        final_str[amount] = '\0';
-        amount++;
 
-    } while (num /= base);
+            answer[i] = (55 + residue);
 
-    *result = strrev(final_str);
-    free(final_str);
-    return OK;
+        }
+
+        else 
+        {
+
+            answer[i] = residue + '0';
+
+        }
+        num /= base;
+
+    }
+    *result = answer;
+
 }
 
 
