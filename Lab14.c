@@ -13,6 +13,7 @@ void usage ()
     printf("\n./[name_of_exe] [- or /][n option][key] input_file.txt [output_file.txt]\n");
     printf("                             Key list:\n");
     printf("           n in key allows you to determinate output file\n");
+    printf("                  d - rid of every arabic numbers            ");
     printf("          i - will count all latin letter for a single line\n");
     printf("             s - will count all signs for a single line\n");
     printf("a - will replace every symbol except of digits with it's ASCII hex code\n");
@@ -22,7 +23,6 @@ void usage ()
 
 EXIT_CODE input_check(int argc, char **argv)
 {
-    
     char *step = argv[1];
     
     if (*step != '-' && *step != '/') 
@@ -36,7 +36,7 @@ EXIT_CODE input_check(int argc, char **argv)
         return INVALID;
     }
     step++;
-    
+    char *filename;
     FILE* output = NULL;
     if (*step == 'n') 
     {
@@ -44,29 +44,35 @@ EXIT_CODE input_check(int argc, char **argv)
         if (argc != 4) {
             return INVALID;
         }
-        output = fopen(argv[3], "w");
+        output = fopen(argv[3], "a");
+        filename = argv[3];
         step++;
     }
-    else if (argc != 3) 
+    else  
     {
-        return INVALID;
+        if (argc != 3)
+        {
+            return INVALID;
+        }
+        
+        path_handling(argv[2], &filename);
+        char out_name[strlen(filename) + 4];
+        strcpy (out_name, "out_");
+        output = fopen(strcat(out_name, filename), "w");
     }
-
-    char *filename;
-    path_handling(argv[2], &filename);
-    char out_name[strlen(filename) + 4];
-    strcpy (out_name, "out_");
-    output = fopen(strcat(out_name, filename), "w");
     if (!output)
     {
         return NO_FILE;
     }
-    if (flag_handling(step, input, output) != OK) 
+    fclose(output);
+    if (flag_handling(step, input, filename) != OK) 
     {   
         return INVALID;
     }
+
     free(filename);
     fclose(input);
+    fclose(output);
     return OK;
 
 }
@@ -133,6 +139,10 @@ EXIT_CODE path_handling (char *argv, char **result)
             if (amount == strlen(final_name))
             {
                 char *temp = (char*)realloc(final_name, sizeof(char) * (amount * 2));
+                if (!temp)
+                {
+                    return BAD_ALLOC;
+                }
                 final_name = temp;
                 free(temp);
             }
@@ -153,47 +163,61 @@ EXIT_CODE path_handling (char *argv, char **result)
 }
 
 
-EXIT_CODE flag_handling (char *c, FILE* in, FILE* out) 
+EXIT_CODE flag_handling (char *c, FILE *in, char *out_name) 
 {
 
+    printf("%c", *c);
     switch (*c)
     {
+        case 'd':
+            return d_func(in, out_name);
 
         case 'i':
-            return i_func(in, out);
-            break;
+            return i_func(in, out_name);
 
         case 's':
-            return s_func(in, out);
-            break;
+            return s_func(in, out_name);
         
         case 'a':
-            return a_func(in, out);
-            break;
+            return a_func(in, out_name);
 
         default:
-            break;
-
+            printf("Sorry, entered flag isn't supported!");
+            return INVALID;
     }
 
 }
 
 
 
+EXIT_CODE d_func(FILE *in, char *out_name)
+{
+    FILE *out = fopen(out_name, "w");
+    char c;
+    while ((c = fgetc(in)) != EOF) 
+    {
+        if (c < '0' || c > '9')
+        {
+            fputc(c, out);
+        }
+    }
+    fclose(out);
+    return OK;
 
-EXIT_CODE i_func (FILE *in, FILE *out)
+}
+
+EXIT_CODE i_func (FILE *in, char *out_name)
 {
 
-    fseek(in, 0, SEEK_SET);
-    fseek(out, 0, SEEK_SET);
+
+    FILE *out = fopen(out_name, "w");
     int latin = 0;
     char c;
     while ((c = fgetc(in)) != EOF) 
     {
-        
         if (c == '\n')
         {
-            fprintf(out, " %d", latin);
+            fprintf(out, "%d\n", latin);
             latin = 0;
         }
         
@@ -202,26 +226,25 @@ EXIT_CODE i_func (FILE *in, FILE *out)
             latin++;
         }
 
-        fputc(c, out);
-
     }
-    fprintf(out, " %d", latin);
+    fprintf(out, "%d", latin);
+    fclose(out);
+
     return OK;
 }
 
-
-EXIT_CODE s_func (FILE *in, FILE *out)
+EXIT_CODE s_func (FILE *in, char *out_name)
 {
 
-    fseek(in, 0, SEEK_SET);
-    fseek(out, 0, SEEK_SET);
+    FILE *out = fopen(out_name, "w");
+    
     int latin = 0;
     char c;
     while ((c = fgetc(in)) != EOF) {
         
         if (c == '\n')
         {
-            fprintf(out, " %d", latin);
+            fprintf(out, "%d\n", latin);
             latin = 0;
         }
         
@@ -230,19 +253,18 @@ EXIT_CODE s_func (FILE *in, FILE *out)
             latin++;
         }
 
-        fputc(c, out);
 
     }
-    fprintf(out, " %d", latin);
+    fprintf(out, "%d", latin);
+    fclose(out);
     return OK;    
     
 }
 
-EXIT_CODE a_func (FILE *in, FILE *out) 
+EXIT_CODE a_func (FILE *in, char *out_name) 
 {
 
-    fseek(in, 0, SEEK_SET);
-    fseek(out, 0, SEEK_SET);
+    FILE *out = fopen(out_name, "w");
     char c;
     while ((c = fgetc(in)) != EOF) 
     {
@@ -255,13 +277,19 @@ EXIT_CODE a_func (FILE *in, FILE *out)
             fputc(c, out);
         }
     }
+
+    fclose(out);
     return OK;    
     
 }
 
 
 int main (int argc, char **argv) {
-
+    if (argc < 3) 
+    {
+        usage();
+       return 1;
+    }
     switch (input_check(argc, argv))
     {
         case OK:
