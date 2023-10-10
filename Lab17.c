@@ -11,12 +11,22 @@
 
 void usage () 
 {
-    printf("./[name_of_exe]");
+    printf("\n                                  ./[name_of_exe] ['-' or '/' flag_op] [arguments].\n");
+    printf("\n                                                   Flag option:\n");
+    printf("                               r - merges two files unit by unit. Required arguments:\n");
+    printf("                                 in1.txt_filename in2.txt_filename out.txt_filename.\n");
+    printf("a - This function rewrites the input file data into the output file with changes at the 2nd, 5th, and 10th positions:\n");
+    printf("                                       in.txt_filename out.txt_filename.\n");
 }
 
 
 EXIT_CODE input_check (int argc, char **argv)
 {
+
+    if (argc != 4 && argc != 5)
+    {
+        return INVALID;
+    }
 
     char *step = argv[1];
     if ((*step != '-' && *step != '/') || (strlen(argv[1]) != 2))
@@ -193,7 +203,7 @@ EXIT_CODE multiplicity_write (FILE* input, char *out)
             if (num == 10)
             {
                 char *result;
-                printf("%d -> %d\n", ch, tolower(ch));
+                //printf("%d -> %d\n", ch, tolower(ch));
                 conv_tenth_any(tolower(ch), 4, &result);
                 fprintf(output, "%s", result);
                 free(result);
@@ -263,12 +273,14 @@ EXIT_CODE conv_tenth_any (long int num, long int base, char **result)
 
     }
     *result = answer;
-
+    return OK;
 }
 
 
 int main (int argc, char **argv) 
 {
+
+    if (argc)
 
     switch (input_check(argc, argv))
     {
