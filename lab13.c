@@ -262,7 +262,6 @@ EXIT_CODE combinationControl (double EPS, double coef1, double coef2, double coe
                 }
             }
             return OK;
-            break;
         case FIRST_SECOND:
             for (int i = 0; i < 3; i++) {
                 if (adder(EPS, combination_arr[i], combination_arr[(i + 1) % 3], combination_arr[(i + 2) % 3], v) != OK) {
@@ -270,7 +269,6 @@ EXIT_CODE combinationControl (double EPS, double coef1, double coef2, double coe
                 }
             }
             return OK;
-            break;
 
         case FIRST_THIRD:
             for (int i = 0; i < 3; i++) {
@@ -279,7 +277,6 @@ EXIT_CODE combinationControl (double EPS, double coef1, double coef2, double coe
                 }
             }
             return OK;
-            break;
 
         case SECOND_THIRD:
             for (int i = 0; i < 3; i++) {
@@ -288,18 +285,15 @@ EXIT_CODE combinationControl (double EPS, double coef1, double coef2, double coe
                 }
             }
             return OK;
-            break;
 
         case THE_ONLY_UNIQUE:
             if (adder(EPS, coef1, coef2, coef3, v) != OK) {
                 return BAD_ALLOC;
             }
             return OK;
-            break;
 
         default:
             return INVALID;
-            break;
         }
 }
 
