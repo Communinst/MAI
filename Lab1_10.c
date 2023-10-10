@@ -38,11 +38,9 @@ EXIT_CODE input_control ()
 
         case BAD_ALLOC:
             return BAD_ALLOC;
-            break;
 
         case INVALID:
             return INVALID;
-            break;
 
         default:
             break;
@@ -65,11 +63,9 @@ EXIT_CODE input_control ()
 
         case BAD_ALLOC:
             return BAD_ALLOC;
-            break;
 
         case INVALID:
             return INVALID;
-            break;
 
         default:
             break;
@@ -95,10 +91,8 @@ EXIT_CODE input_control ()
 
             case BAD_ALLOC:
                 return BAD_ALLOC;
-                break;
             case INVALID:
                 return INVALID;
-                break;
 
             default:
                 break;
@@ -147,10 +141,8 @@ EXIT_CODE string_analysis (char **result)
     {
         case BAD_ALLOC:
             return BAD_ALLOC;
-            break;
         case INVALID:
             return INVALID;
-            break;
         default:
             break;
     }
