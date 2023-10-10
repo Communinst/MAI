@@ -10,11 +10,7 @@ typedef enum {
 } EXIT_CODE;
 
 
-typedef struct VectorInt{
-    int num_of_el;
-    long int* el;
-    int mem_capacity;
-} VectorInt;
+void warning ();
 
 
 void usage ();
@@ -22,16 +18,20 @@ void usage ();
 
 EXIT_CODE double_check (char *argv, long int *value, int base);
 
+
 EXIT_CODE input_control ();
 
-EXIT_CODE proper_start_nd_base (long int *base);
+
+EXIT_CODE acquire_base (long int *base);
+
 
 EXIT_CODE string_analysis (char **result);
 
+
 EXIT_CODE acquire_string (char **result);
 
-EXIT_CODE conv_tenth_any (long int num, long int base, char **result);
 
+EXIT_CODE conv_tenth_any (long int num, long int base, char **result);
 
 
 

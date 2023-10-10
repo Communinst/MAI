@@ -8,20 +8,29 @@
 #include "Procedure.h"
 
 
+void warning ()
+{
+    printf("\nWarning: EOF'll terminate executing process immediately.\n\n");
+}
+
 
 void usage () 
 {
-    printf("./[name_of_exe]");
+    printf("IDIOT!\n");
 }
-
 
 
 EXIT_CODE double_check (char *argv, long int *value, int base)
 {
     char *endptr;
     *value = strtol (argv, &endptr, base);
-    return (endptr != argv + strlen(argv));
+    if (endptr != argv + strlen(argv)) 
+    {
+        return INVALID;
+    }
+    return OK;
 }
+
 
 EXIT_CODE input_control ()
 {
@@ -29,7 +38,7 @@ EXIT_CODE input_control ()
     long int base = 0;
     bool run = true;
 
-    switch (proper_start_nd_base(&base))
+    switch (acquire_base(&base))
     {
 
         case STOP:
@@ -41,48 +50,19 @@ EXIT_CODE input_control ()
 
         case INVALID:
             return INVALID;
-
         default:
             break;
+
     }
 
-    if (base < 2 || base > 36) 
-    {
-        return INVALID;
-    }
+    printf("%d\n", base);
 
-    long int num = 0;
-    char *unit;
     long int max = 0;
+    long int num = 0;
 
-    switch (string_analysis (&unit))
+    while (run)
     {
-        case STOP:
-            run = false;
-            break;
-
-        case BAD_ALLOC:
-            return BAD_ALLOC;
-
-        case INVALID:
-            return INVALID;
-
-        default:
-            break;
-    }
-    do
-    {
-        if (double_check (unit, &num, base))
-        {
-            return INVALID;
-        }
-
-        if (max < num) 
-        {
-            max = num;
-        }
-        free(unit);
-
+        char *unit;
         switch (string_analysis (&unit))
         {
             case STOP:
@@ -91,16 +71,29 @@ EXIT_CODE input_control ()
 
             case BAD_ALLOC:
                 return BAD_ALLOC;
+
             case INVALID:
                 return INVALID;
 
             default:
                 break;
         }
+        if (!run)
+        {
+            break;
+        }
+        if (double_check(unit, &num, base) == INVALID)
+        {
+            return INVALID;
+        }
 
-    } while (run);
+        if (max < num)
+        {
+            max = num;
+        }
+        free(unit);
+    }
 
-    free(unit);
     char *result;
     printf("%d maximum number in: \n", max);
     for (int i = 1; i <= 4; i++)
@@ -115,41 +108,52 @@ EXIT_CODE input_control ()
 
 }
 
-EXIT_CODE proper_start_nd_base(long int *base)
+EXIT_CODE acquire_base (long int *base)
 {
 
-    char *str_base = NULL;
-    if (acquire_string(&str_base) != OK)
+    char *str_base;
+    switch (string_analysis(&str_base))
     {
-        return BAD_ALLOC;
+        case STOP:
+            return STOP;
+        
+        case BAD_ALLOC:
+            return BAD_ALLOC;
+
+        default:
+            break;
     }
-    if (!strcmp(str_base, "Stop")) 
+
+    if (double_check(str_base, base, 10) == INVALID)
     {
-        return STOP;
+        return INVALID;
     }
-    EXIT_CODE temp = double_check(str_base, base, 10);
-    free(str_base);
-    return temp;
+
+    if (*base < 2 || *base > 36) 
+    {
+        return INVALID;
+    }
+
+    return OK;
 
 }
+
 
 EXIT_CODE string_analysis (char **result)
 {
 
     char *str_base;
-    switch (acquire_string(&str_base))
+
+    if (acquire_string(&str_base) == BAD_ALLOC)
     {
-        case BAD_ALLOC:
-            return BAD_ALLOC;
-        case INVALID:
-            return INVALID;
-        default:
-            break;
+        return BAD_ALLOC;
     }
+
     if (!strcmp(str_base, "Stop")) 
     {
         return STOP;
     }
+
     *result = str_base;
     return OK;
 
@@ -157,7 +161,6 @@ EXIT_CODE string_analysis (char **result)
 
 EXIT_CODE acquire_string (char **result)
 {
-
     
     char *input = (char*)malloc(sizeof(char) * 1);
 
@@ -172,13 +175,12 @@ EXIT_CODE acquire_string (char **result)
     int amount = 1;
     while ((c = getchar()) != '\n')
     {
-        if (c == '-') {
-            return INVALID;
-        }
+
         if (c == EOF) 
         {
-            break;
+            exit(1);
         }
+
         if ((strlen(input)) == amount)
         {
 
@@ -196,6 +198,7 @@ EXIT_CODE acquire_string (char **result)
         input[amount] = '\0';
         amount++;
     }
+    
     *result = input;
     return OK;
     
@@ -236,11 +239,15 @@ EXIT_CODE conv_tenth_any (long int num, long int base, char **result)
     }
     *result = answer;
 
+    return OK;
+
 }
 
 
 int main () 
 {
+
+    warning();
 
     switch (input_control())
     {
@@ -250,12 +257,12 @@ int main ()
         
         case INVALID:
             printf("Invalid input!\n");
-            usage();
             break;
 
         case BAD_ALLOC:
             printf("Memory fault!");
             break;
+
         default:
             break;
     }
