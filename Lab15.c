@@ -21,8 +21,14 @@ EXIT_CODE double_check (char *argv, double *value)
 {
     char *endptr;
     *value = strtod (argv, &endptr);
-    return (endptr != argv + strlen(argv));
+    if (endptr != argv + strlen(argv));
+    {
+        return INVALID;
+    }
+    return OK;
 }
+
+
 
 EXIT_CODE input_check (int argc, char **argv)
 {
