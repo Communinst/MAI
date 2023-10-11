@@ -8,10 +8,17 @@
 #include "Procedure.h"
 
 
+void warning ()
+{
+
+    printf("\nInput file is to contains numbers in [2 - 36]th number system\n");
+
+}
+
 
 void usage () 
 {
-    printf("./[name_of_exe]");
+    printf("./[name_of_exe] input_filename output_filename");
 }
 
 EXIT_CODE is_str_appropriate (char *str, long int *lint_based, int base)
@@ -24,7 +31,11 @@ EXIT_CODE is_str_appropriate (char *str, long int *lint_based, int base)
     char *step;
     *lint_based = strtol(str, &step, base);
 
-    return (step != str + strlen(str));
+    if (step != str + strlen(str))
+    {
+        return INVALID;
+    }
+    return OK;
 
 }
 
@@ -57,30 +68,41 @@ EXIT_CODE write_file (int argc, char **argv)
 
     while (!feof(input))
     {
+
         char *str;
         long int based_value = 0;
-        aquire_str(input, &str, &base);
+
+        if (aquire_str(input, &str, &base) == BAD_ALLOC)
+        {
+            return BAD_ALLOC;
+        }
+
         base++;
 
-        EXIT_CODE beam = (is_str_appropriate(str, &based_value, base));
-        if (beam == EoF) 
+        switch (is_str_appropriate(str, &based_value, base))
         {
-            return OK;
+
+            case EOF:
+                return OK;
+
+            case INVALID:
+                return INVALID;
+
+            default:
+                break;
+
         }
-        if (beam != OK)
-        {
-            return INVALID;
-        }
-        
+
         if (base == 10)
         {
             fprintf(output, "%s %d %s\n", str, base, str);
-
         }
+
         else 
         {
             fprintf(output, "%s %d %ld\n", str, base, based_value);
         }
+
         free(str);
 
     }
@@ -107,8 +129,7 @@ EXIT_CODE aquire_str (FILE* f, char **str, int *base)
     int a = fgetc(f);
     skip_dividers(f, &a);
     int amount = 1;
-    *base = 2;
-    //printf("%d!\n", a);
+    *base = 1;
     do
     {
         
@@ -179,10 +200,12 @@ EXIT_CODE skip_dividers (FILE* f, int *res)
 int main (int argc, char **argv) 
 {
 
+    warning();
+
     switch (input_check(argc, argv))
     {
         case OK:
-            printf("SUCCESS!\n");
+            printf("\nSUCCESS!\n\n");
             break;
         
         case INVALID:

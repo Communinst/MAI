@@ -11,6 +11,9 @@ typedef enum {
 } EXIT_CODE;
 
 
+void warning ();
+
+
 void usage ();
 
 
