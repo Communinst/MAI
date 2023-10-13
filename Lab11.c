@@ -65,7 +65,7 @@ EXIT_CODE file_handling (char* file_name)
     {
         return NO_FILE;
     }
-
+    fseek(in, 3, SEEK_SET);
     char* res;
 
     acq_req_bytes(in, &res);
@@ -106,12 +106,10 @@ EXIT_CODE print_all_file (FILE* in)
 EXIT_CODE acq_req_bytes (FILE* in, char** res)
 {
 
-    fseek(in, 3, SEEK_SET);
-
     char* buff = (char*)malloc(sizeof(char) * (REQ_BUFF + 1));
-    buff[REQ_BUFF] = '\0';
-
     fread(buff, sizeof(char), REQ_BUFF, in);
+
+    buff[REQ_BUFF] = '\0';
 
     *res = buff;
 
@@ -122,13 +120,16 @@ EXIT_CODE acq_req_bytes (FILE* in, char** res)
 
 void print_bytes (char* bytes)
 {
+    
+    printf("Required row of bytes: ");
 
-    char* crawler = bytes;
-
-    while (*crawler != '\0')
+    while (*bytes != '\0')
     {
-        printf("%c\t", crawler++);
+        printf("%c ", *bytes + 48);
+        bytes++;
     }
+    printf("\n");
+    
 
 }
 
@@ -142,7 +143,7 @@ int main(int argc, char *argv[]) {
             break;
         
         case OK:
-            print("SUCCESS!");
+            printf("SUCCESS!");
             break;
 
         default:
