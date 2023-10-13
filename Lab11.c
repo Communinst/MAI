@@ -142,10 +142,13 @@ int main(int argc, char *argv[]) {
             break;
         
         case OK:
-            return 0;
+            print("SUCCESS!");
+            break;
 
         default:
             break;
     }
     
+    return 0;
+
 }
