@@ -200,7 +200,7 @@ EXIT_CODE matching (FILE* in, unsigned long int *res, unsigned long int hex)
     do 
     {
 
-        if (hex ^ num == 0)
+        if (hex | num == hex)
         {
             (*res)++;
         } 
