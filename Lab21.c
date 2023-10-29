@@ -9,13 +9,6 @@
 #include "Procedure.h"
 
 
-void warning ()
-{
-
-    printf("");
-
-}
-
 void usage () 
 {
     printf("./[exe_name] ['-' or '/'][key] [args]\n\n");
@@ -151,8 +144,6 @@ char* string_reverse (char* str)
     return rev_str;
 
 }   
-
-
 
 EXIT_CODE u_flag (int argc, char* argv)
 {
@@ -396,11 +387,6 @@ char* string_cat (char* cur_pos, char* add)
 
 int main (int argc, char **argv) 
 {
-
-    warning();
-
-    
-
 
     switch (input_check(argc, argv))
     {
