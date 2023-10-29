@@ -35,7 +35,8 @@ EXIT_CODE get_frac(double* top, double* bottom, double input, double EPS)
 
     } while (fmod(input, 1.0) >= EPS );
     *top = input / 1.0;
-
+    return OK;
+    
 }
 
 
@@ -43,8 +44,6 @@ int belong_to_base (double top, double bottom, int base, double EPS)
 {
 
     double divider = bottom / base;
-
-    //printf("%llf!\n", divider);
 
     if (fmod(top, divider) <= EPS)
     {
@@ -59,8 +58,6 @@ EXIT_CODE does_exist_in_base (int base, int amount, ...)
 {
 
     double EPS = machine_EPS();
-
-    //printf("%.20llf", EPS);
 
     va_list tenth;
     va_start(tenth, amount);

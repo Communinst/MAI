@@ -4,20 +4,20 @@
 
 typedef enum 
 {
-
     OK = 0,
     INVALID,
     BAD_ALLOC,
-    
+    DONT_EXIST,
+
 } EXIT_CODE;
 
 
-EXIT_CODE sum_str_long (char** res, int base, int amount, ...);
+double machine_EPS ();
 
+EXIT_CODE get_frac(double* top, double* bottom, double input, double EPS);
 
-EXIT_CODE sum_up (char** result, char* adding);
+int belong_to_base (double top, double bottom, int base, double EPS);
 
-
-EXIT_CODE adder (char** result, char crawler,int* amount);
+EXIT_CODE does_exist_in_base (int base, int amount, ...);
 
 #endif
