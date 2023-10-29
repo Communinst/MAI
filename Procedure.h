@@ -10,5 +10,6 @@ typedef enum
 
 } EXIT_CODE;
 
+EXIT_CODE dichotomy (double* res, double l_board, double r_board, double EPS, double (*func)(double));
 
 #endif

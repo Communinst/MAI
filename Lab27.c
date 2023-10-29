@@ -17,12 +17,7 @@ EXIT_CODE dichotomy (double* res, double l_board, double r_board, double EPS, do
         return INVALID;
     }
 
-    if (l_board * r_board > 0)
-    {
-        return INVALID;
-    }
-
-    if (EPS <= 0)
+    if (EPS < 0)
     {
         return INVALID;
     }
