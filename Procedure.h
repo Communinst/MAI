@@ -12,10 +12,10 @@ typedef enum
 } EXIT_CODE;
 
 
-void warning ();
 
+int is_convex_poly(int amount, ...);
 
-void usage ();
+EXIT_CODE res_in_point (double* res, double root, int level, ...);
 
 
 #endif
