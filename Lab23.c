@@ -4,19 +4,8 @@
 #include <ctype.h>
 #include <stdarg.h>
 #include <math.h>
+
 #include "Procedure.h"
-
-
-void warning ()
-{
-    printf("\nWarning: EOF'll terminate executing process immediately.\n\n");
-}
-
-
-void usage () 
-{
-    printf("IDIOT!\n");
-}
 
 
 EXIT_CODE paths_handling (const char* substr, int amount, ...)
@@ -108,7 +97,6 @@ size_t string_length (const char* str)
 int if_substr (const char* ss, FILE* in, int current, int* passed)
 {
 
-    
 
     for (int i = 1; i < string_length(ss); i++)
     {
@@ -141,7 +129,6 @@ int main ()
     {
         return NO_FILE;
     }
-
 
     return 0;
 }
