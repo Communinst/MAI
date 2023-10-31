@@ -41,7 +41,7 @@ EXIT_CODE ten_to_n (long long int tenth, char** result, int pow_of_two)
 
         }
 
-        buff = (tenth & (~-(1 << pow_of_two)));
+        buff = (tenth & ~(sum_up_by_bits(~(1 << pow_of_two), 1)));
         
         mirror[amount] = (buff > 10) ? sum_up_by_bits(buff, 55) : (buff | 48);
 
