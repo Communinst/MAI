@@ -383,7 +383,7 @@ EXIT_CODE get_str (FILE* in, int* current_pos, char** dest)
 }
 
 
-/*---------------------------------Sort-subroot-------------------------------------------*/
+//-------Sort-subroot------//
 
 EXIT_CODE sort_base (Employee** data_base, int size, char flag)
 {
@@ -442,6 +442,9 @@ int descend_comp (const void* v1, const void* v2)
 {
     ascend_comp(v2, v1);
 }
+
+//-------------------------//
+
 
 /*----------------------------------------------------------------------------------------*/
 
