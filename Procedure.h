@@ -29,17 +29,6 @@ typedef struct
 } Employee;
 
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <ctype.h>
-#include <stdarg.h>
-#include <limits.h>
-#include <math.h>
-
-#include "Procedure.h"
-
-
 
 
 /*---------------------------------Additional-stuff---------------------------------------*/
@@ -100,6 +89,7 @@ int ascend_comp (const void* v1, const void* v2);
 int descend_comp (const void* v1, const void* v2);
 
 /*----------------------------------------------------------------------------------------*/
+
 
 
 
