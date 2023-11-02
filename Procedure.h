@@ -29,39 +29,86 @@ typedef struct
 } Employee;
 
 
-EXIT_CODE valid_lint (char* str, long int* dest);
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+#include <stdarg.h>
+#include <limits.h>
+#include <math.h>
 
-EXIT_CODE valid_lfloat (char* str, double* dest);
+#include "Procedure.h"
 
-EXIT_CODE result_handling (int argc, char** argv, char flag);
 
-EXIT_CODE sort_base (Employee** data_base, int size, char flag);
 
-EXIT_CODE input_check (int argc, char** argv);
+
+/*---------------------------------Additional-stuff---------------------------------------*/
 
 void usage();
 
-EXIT_CODE write_down_data (Employee*** data_base, int size, char* out_name);
+
+EXIT_CODE valid_lint (char* str, long int* dest);
+
+
+EXIT_CODE valid_lfloat (char* str, double* dest);
+
+
+void free_list (int amount, ...);
+
+/*----------------------------------------------------------------------------------------*/
 
 
 
-EXIT_CODE a_flag (int argc, Employee** data_base, int size);
 
-int ascend_comp (const void* v1, const void* v2);
+/*-----------------------------------Validation-------------------------------------------*/
 
-int descend_comp (const void* v1, const void* v2);
+EXIT_CODE input_check (int argc, char** argv);
 
+/*----------------------------------------------------------------------------------------*/
+
+
+
+
+/*-----------------------------Main-hub-and-two-roots-below-------------------------------*/
+
+EXIT_CODE result_handling (int argc, char** argv, char flag);
+
+/*----------------------------------------------------------------------------------------*/
+
+
+
+
+/*---------------------------Dump-process-handling-root-----------------------------------*/
 
 EXIT_CODE get_base (int argc, char** argv, Employee*** main_base, int* size);
-
-
 
 
 EXIT_CODE get_node (Employee** main_node, int* current_pos, FILE* in);
 
 
-
 EXIT_CODE get_str (FILE* in, int* current_pos, char** dest);
+
+
+/*---------------------------------Sort-subroot-------------------------------------------*/
+
+EXIT_CODE sort_base (Employee** data_base, int size, char flag);
+
+
+int ascend_comp (const void* v1, const void* v2);
+
+
+int descend_comp (const void* v1, const void* v2);
+
+/*----------------------------------------------------------------------------------------*/
+
+
+
+/*---------------------------------Drop-process-handling----------------------------------*/
+
+EXIT_CODE write_down_data (Employee*** data_base, int size, char* out_name);
+
+/*----------------------------------------------------------------------------------------*/
+
 
 
 

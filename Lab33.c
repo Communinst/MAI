@@ -22,7 +22,9 @@ int main (int argc, char** argv)
             break;
         
         case INVALID:
-            printf("\nInvalid input!\nStick to the following instructions:\n");
+            printf("|--------------------------------------------------------------|\n");
+            printf("|                        Invalid input!                        |\n");
+            printf("|              Stick to the following instructions:            |\n");
             usage();
             break;
 
@@ -47,14 +49,17 @@ int main (int argc, char** argv)
 void usage()
 {
     printf("|--------------------------------------------------------------|");
-    printf("|\n|./[exe_name] input_filename [- or /][flag] output_filename.|\n");
+    printf("\n|  ./[exe_name] input_filename [- or /][flag] output_filename. |\n");
     printf("|                                                              |");
-    printf("|\n|List of allowed flags:                                     |\n");
-    printf("|\n|a - sort the data_base by ascending;                       |\n");
-    printf("|\n|d - sort the data_base by descending;                      |\n|\n|");
-    printf("---------------------------------------------------------------");
+    printf("\n|                    List of allowed flags:                    |\n");
+    printf("|                                                              |");
+    printf("\n|              a - sort the data_base by ascending;            |\n");
+    printf("|                                                              |");
+    printf("\n|            d - sort the data_base by descending;             |\n");
+    printf("|--------------------------------------------------------------|");
 
 }
+
 
 EXIT_CODE valid_lint (char* str, long int* dest)
 {
