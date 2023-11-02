@@ -29,8 +29,14 @@ int main (int argc, char** argv)
             break;
 
         case NO_FILE:
-            printf("\nMake sure entered files exist\n");
+            printf("\nMake sure the entered files exist\n");
             break;
+
+        case UNKNOWN_COMMAND:
+            printf("|--------------------------------------------------------------|\n");
+            printf("|                Entered command isn't defined!                |\n");
+            printf("|             Stick to the following instructions:             |\n");
+            usage();
 
         default:
             break;
@@ -149,7 +155,10 @@ EXIT_CODE result_handling (int argc, char** argv, char flag)
         return INVALID;
     }
 
-    sort_base (data_base, size, flag);
+    if (sort_base (data_base, size, flag) != OK)
+    {
+        return UNKNOWN_COMMAND;
+    }
 
     return write_down_data (&data_base, size, argv[3]);
 
@@ -438,6 +447,7 @@ int descend_comp (const void* v1, const void* v2)
 
 
 
+
 /*---------------------------------Drop-process-handling----------------------------------*/
 
 EXIT_CODE write_down_data (Employee*** data_base, int size, char* out_name)
@@ -468,7 +478,3 @@ EXIT_CODE write_down_data (Employee*** data_base, int size, char* out_name)
 }
 
 /*----------------------------------------------------------------------------------------*/
-
-
-
-
