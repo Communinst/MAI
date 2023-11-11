@@ -43,8 +43,6 @@ EXIT_CODE enqueue (queue* q, int data, int level)
 
     new_node->next = NULL;
 
-    printf("%d\n", q->size);
-
     if (!is_empty(q))
     {
         q->front = new_node;
@@ -199,10 +197,10 @@ EXIT_CODE leaf_destr (leaf* leaf)
 }
 
 
-EXIT_CODE add_leaf (leaf** root, node_data data, int (*comp)(int level1, int level2), int* last_added)
+EXIT_CODE add_leaf (leaf** root, node_data data, int (*comp)(int level1, int level2), node_data* last_added)
 {    
 
-    if ((*last_added == -1))
+    if (((*last_added).data == -1))
     {
 
         leaf* new_node = (leaf*)malloc(sizeof(leaf));
@@ -216,27 +214,25 @@ EXIT_CODE add_leaf (leaf** root, node_data data, int (*comp)(int level1, int lev
 
         *root = new_node;
 
-        *last_added = data.data;
-
-        printf("%d!\n", (*root)->data.data);
+        *last_added = data;
 
         return OK;
 
     }
 
-    if (!(*root))
+
+    int stat = comp((*root)->data.level, data.level);
+
+    if (stat < 0)
     {
         return OK;
     }
-
-    int stat = comp((*root)->data.level, data.level);
 
     if (stat == 1)
     {
 
-        if (!(*root)->child && (*root)->data.data == *last_added)
+        if (((*root)->data.data == (*last_added).data) && (!(*root)->child))
         {
-            
             leaf* new_node = (leaf*)malloc(sizeof(leaf));
 
             if (!new_node)
@@ -248,14 +244,10 @@ EXIT_CODE add_leaf (leaf** root, node_data data, int (*comp)(int level1, int lev
 
             (*root)->child = new_node;
 
-            *last_added = data.data;
-
-            printf("%d!\n", (*root)->data.data);
+            *last_added = data;
 
             return OK;
-
         }
-
     }
 
     if (!stat)
@@ -263,22 +255,26 @@ EXIT_CODE add_leaf (leaf** root, node_data data, int (*comp)(int level1, int lev
 
         status_0_handling(root, data, last_added);
 
-        printf("%d!\n", (*root)->data.data);
-
         return OK;
 
     }
 
-    add_leaf(&(*root)->child, data, comp, last_added);
-    add_leaf(&(*root)->brother, data, comp, last_added);
+    if ((*root)->child)
+    {
+        add_leaf(&(*root)->child, data, comp, last_added);
+    }
+    if ((*root)->brother)
+    {
+        add_leaf(&(*root)->brother, data, comp, last_added);
+    }
 
 }
     
 
-EXIT_CODE status_0_handling (leaf** root, node_data data, int* last_added)
+EXIT_CODE status_0_handling (leaf** root, node_data data, node_data* last_added)
 {
 
-    if ((*root)->data.data == *last_added)
+    if (((*root)->data.data == (*last_added).data) || (((*root)->data.level) - (*last_added).level) < 0)
     {
 
         leaf* new_node = (leaf*)malloc(sizeof(leaf));
@@ -292,10 +288,15 @@ EXIT_CODE status_0_handling (leaf** root, node_data data, int* last_added)
 
         (*root)->brother = new_node;
 
-        *last_added = data.data;
+        *last_added = data;
 
         return OK;
 
+    }
+
+    if (!(*root)->brother)
+    {
+        return OK;
     }
 
     status_0_handling(&(*root)->brother, data, last_added);
@@ -303,7 +304,7 @@ EXIT_CODE status_0_handling (leaf** root, node_data data, int* last_added)
 }
 
 
-EXIT_CODE show_tree (leaf* root)
+EXIT_CODE show_tree (leaf* root, FILE* out)
 {
 
     if (!root)
@@ -311,21 +312,18 @@ EXIT_CODE show_tree (leaf* root)
         return OK;
     }
 
-    printf("%d", root->data.data);
-
-    if (!(root->brother))
+    for (int tabs = 0; tabs < root->data.level; tabs++)
     {
-
-        printf("\t");
-
-        show_tree(root->brother);
-
+        fprintf(out, "\t");
     }
 
-    else 
-    {
-        show_tree(root->child);    
-    }
+    fprintf(out, "%c\n", root->data.data);
+
+    show_tree(root->child, out);
+
+    show_tree(root->brother, out);
+
+    return OK;
 
 }
 
@@ -378,13 +376,32 @@ EXIT_CODE file_handling (int argc, char** argv)
     do
     {
 
-        prepare_queue(instance, &c, in);
+        if (prepare_queue(instance, &c, in) != OK)
+        {
+            free_queue_content(instance);
+            free(instance);
 
-        queue_to_tree(&(prepare_repres->root), instance);
+            free(prepare_repres);
 
-        show_tree(prepare_repres->root);
+            fclose(in);
+            fclose(out);
 
-        destr_tree(prepare_repres);
+            return INVALID;
+
+        }
+
+        if (instance->size)
+        {
+
+            queue_to_tree(&(prepare_repres->root), instance);
+
+            show_tree(prepare_repres->root, out);
+
+            fprintf(out, "\n\n");
+
+            destr_tree(prepare_repres);
+        
+        }
 
     } while (c > 0);
     
@@ -404,11 +421,11 @@ EXIT_CODE prepare_queue (queue* q, char* c, FILE* in)
 {
 
     int brackets_level = 0;
+    int prev_brackets = 0;
+
 
     while ((*c = fgetc(in)) != '\n' && *c > 0)
     {
-
-        //printf("%c", *c);
 
         if (*c == '(')
         {
@@ -421,8 +438,23 @@ EXIT_CODE prepare_queue (queue* q, char* c, FILE* in)
 
         else if (!isblank(*c) && (*c != ','))
         {
+            
+            if (brackets_level - prev_brackets > 1)
+            {
+                return INVALID;
+            }
+
             enqueue(q, *c, brackets_level);
+            prev_brackets = brackets_level;
+
         }
+
+    }
+
+    if (brackets_level)
+    {
+
+        return INVALID;
 
     }
 
@@ -434,7 +466,7 @@ EXIT_CODE prepare_queue (queue* q, char* c, FILE* in)
 EXIT_CODE queue_to_tree (leaf** dest, queue* q)
 {
 
-    int last_added = -1;
+    node_data last_added = {-1, -1};
 
     while (q->size)
     {

@@ -132,10 +132,10 @@ EXIT_CODE leaf_constr (leaf* leaf, node_data data);
 EXIT_CODE leaf_destr (leaf* leaf);
 
 
-EXIT_CODE add_leaf (leaf** root, node_data data, int (*comp)(int level1, int level2), int* last_added);
+EXIT_CODE add_leaf (leaf** root, node_data data, int (*comp)(int level1, int level2), node_data* last_added);
     
 
-EXIT_CODE status_0_handling (leaf** root, node_data data, int* last_added);
+EXIT_CODE status_0_handling (leaf** root, node_data data, node_data* last_added);
 
 
 /*----------------------------------------------------------------------------------------*/
