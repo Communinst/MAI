@@ -52,6 +52,41 @@ typedef struct
 
 
 
+EXIT_CODE DN_constr (data_node **dest, int frequency, char *key);
+
+
+EXIT_CODE DN_destr (data_node **dest);
+
+
+EXIT_CODE TN_constr (tree_node **dest, int frequency, char *key);
+
+
+EXIT_CODE TN_destr (tree_node **dest);
+
+
+EXIT_CODE BST_init (BST **dest);
+
+
+EXIT_CODE BST_destr (BST **dest);
+
+
+EXIT_CODE tree_destr (tree_node **root);
+
+
+EXIT_CODE add_leaf (tree_node **root, char *key);
+
+
+EXIT_CODE input_handle (int argc, char **argv);
+
+
 EXIT_CODE collect_divs (char **dest, char **argv, int argc);
+
+
+
+EXIT_CODE file_handle (char *filename, char *dividers);
+
+
+
+EXIT_CODE get_word (char **dest, char *c, char *dividers, FILE *in);
 
 #endif

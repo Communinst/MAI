@@ -115,13 +115,9 @@ EXIT_CODE BST_init (BST **dest)
 
     buff->root = NULL;
 
-    buff->longest.key = NULL;
+    buff->longest = NULL;
 
-    buff->longest.frequency = INT_MIN;
-
-    buff->shortest.key = NULL;
-
-    buff->shortest.frequency = INT_MAX;
+    buff->shortest = NULL;
 
     *dest = buff;
 
@@ -133,32 +129,73 @@ EXIT_CODE BST_init (BST **dest)
 EXIT_CODE BST_destr (BST **dest)
 {
 
+    tree_destr(&((*dest)->root));
     free((*dest)->root);
     (*dest)->root = NULL;
 
-    (*dest)->shortest.frequency = 0;
-    free((*dest)->shortest.key);
-    (*dest)->shortest.key = NULL;
+    free((*dest)->shortest);
+    (*dest)->shortest = NULL;
     
-    (*dest)->longest.frequency = 0;
-    free((*dest)->longest.key);
-    (*dest)->longest.key = NULL;
+    free((*dest)->longest);
+    (*dest)->longest = NULL;
 
     return OK;
 
 }
 
 
-EXIT_CODE add_leaf (tree_node **root, tree_node to_add)
+EXIT_CODE tree_destr (tree_node **root)
 {
 
     if (!(*root))
     {
-        
+        return OK;
     }
+
+    tree_destr (&((*root)->left));
+    tree_destr (&((*root)->right));
+
+    TN_destr(root);
+
+    return OK;
+
+}
+
+
+EXIT_CODE add_leaf (tree_node **root, char *key)
+{
+
+    if (!(*root))
+    {
+        tree_node *new = NULL;
+
+        TN_constr(&new, 0, key);
+
+        *root = new;
+    }
+
+    if (strcmp(key, (*root)->stuff->key) < 0)
+    {
+        add_leaf(&(*root)->left, key);
+    }
+
+    else if (strcmp(key, (*root)->stuff->key) > 0)
+    {
+        add_leaf(&(*root)->right, key);
+    }
+
+    else 
+    {
+        ((*root)->stuff->frequency)++;
+    }
+
+    return OK;
 
 
 }
+
+
+EXIT_CODE show_tree()
 
 
 EXIT_CODE input_handle (int argc, char **argv)
@@ -233,7 +270,7 @@ EXIT_CODE file_handle (char *filename, char *dividers)
 
     BST* res = NULL;
 
-    char* c;
+    char c;
 
     char* temp_str = NULL;
 
@@ -242,13 +279,15 @@ EXIT_CODE file_handle (char *filename, char *dividers)
 
         get_word(&temp_str, &c, dividers, in);
 
-        //add_leaf
+        add_leaf(&(res->root), temp_str);
 
         free(temp_str);
 
     } while (c > 0);
     
+    BST_destr(&res);
 
+    return OK;
 
 }
 
