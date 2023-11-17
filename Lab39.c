@@ -307,7 +307,7 @@ EXIT_CODE get_word (char **dest, char *c, char *dividers, FILE *in)
 
     int amount = 0;
 
-    while (!strchr(dividers, (*c = fgetc(in))) || (*c < 0))
+    while (!strchr(dividers, (*c = fgetc(in))) && (*c > 0))
     {
 
         if (amount == strlen(buff))
