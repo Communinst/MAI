@@ -133,11 +133,9 @@ EXIT_CODE BST_destr (BST **dest)
     free((*dest)->root);
     (*dest)->root = NULL;
 
-    free((*dest)->shortest);
-    (*dest)->shortest = NULL;
-    
     free((*dest)->longest);
-    (*dest)->longest = NULL;
+
+    free((*dest)->shortest);
 
     return OK;
 
@@ -161,7 +159,7 @@ EXIT_CODE tree_destr (tree_node **root)
 
 }
 
-
+/*
 EXIT_CODE add_leaf (tree_node **root, char *key)
 {
 
@@ -172,9 +170,11 @@ EXIT_CODE add_leaf (tree_node **root, char *key)
         TN_constr(&new, 0, key);
 
         *root = new;
+
+        if ()
     }
 
-    if (strcmp(key, (*root)->stuff->key) < 0)
+    else if (strcmp(key, (*root)->stuff->key) < 0)
     {
         add_leaf(&(*root)->left, key);
     }
@@ -192,10 +192,124 @@ EXIT_CODE add_leaf (tree_node **root, char *key)
     return OK;
 
 
+}*/
+
+
+EXIT_CODE add_leaf (tree_node **root, char *key, BST *tree)
+{
+
+    if (!(*root))
+    {
+
+        tree_node *new = NULL;
+
+        TN_constr(&new, 0, key);
+
+        *root = new;
+
+        shortest_longest(tree, key);
+
+    }
+
+    else if (strcmp(key, (*root)->stuff->key) < 0)
+    {
+        add_leaf(&(*root)->left, key, tree);
+    }
+
+    else if (strcmp(key, (*root)->stuff->key) > 0)
+    {
+        add_leaf(&(*root)->right, key, tree);
+    }
+
+    else 
+    {
+        ((*root)->stuff->frequency)++;
+    }
+
+    return OK;
+
+
 }
 
 
-EXIT_CODE show_tree()
+EXIT_CODE shortest_longest (BST *tree, char *key)
+{
+
+    size_t size = strlen(key);
+
+    if (!(tree->longest))
+    {
+
+        str_copy(&(tree->longest), key);
+        str_copy(&(tree->shortest), key);
+
+    }
+
+    else if (strlen(tree->longest) <= size)
+    {
+
+        free(tree->longest);
+        str_copy(&(tree->longest), key);
+
+    }
+
+    else if (strlen(tree->shortest) >= size)
+    {
+
+        free(tree->shortest);
+        str_copy(&(tree->shortest), key);
+
+    }
+
+    return OK;
+
+
+}
+
+
+EXIT_CODE str_copy (char **dest, char *src)
+{
+
+    size_t size = strlen(src);
+
+    char* buff = (char*)malloc(sizeof(char) * (size + 1));
+
+    if (!buff)
+    {
+        return BAD_ALLOC;
+    }
+
+    strcpy(buff, src);
+
+    *dest = buff;
+
+    return OK;
+
+}
+
+
+EXIT_CODE show_tree(tree_node *root, int tabs) 
+{
+
+    if (!root)
+    {
+        return OK;
+    }
+
+    show_tree(root->right, tabs + 1);
+
+    for (int i = 0; i < tabs; i++)
+    {
+        printf("\t");
+    }
+
+    printf("%s\n", root->stuff->key);
+
+    show_tree(root->left, tabs + 1);
+
+    return OK;
+
+}
 
 
 EXIT_CODE input_handle (int argc, char **argv)
@@ -210,11 +324,6 @@ EXIT_CODE input_handle (int argc, char **argv)
     char *div_coll = NULL;
 
     collect_divs(&div_coll, argv + 2, argc - 2);
-
-    for (int i = 0 ; i < argc - 2; i++)
-    {
-        printf("%c\n", div_coll[i]);
-    }
 
     file_handle(argv[1], div_coll);
 
@@ -270,6 +379,8 @@ EXIT_CODE file_handle (char *filename, char *dividers)
 
     BST* res = NULL;
 
+    BST_init(&res);
+
     char c;
 
     char* temp_str = NULL;
@@ -279,12 +390,14 @@ EXIT_CODE file_handle (char *filename, char *dividers)
 
         get_word(&temp_str, &c, dividers, in);
 
-        add_leaf(&(res->root), temp_str);
+        add_leaf(&(res->root), temp_str, res);
 
         free(temp_str);
 
     } while (c > 0);
     
+    show_tree(res->root, 0);
+
     BST_destr(&res);
 
     return OK;
@@ -305,7 +418,7 @@ EXIT_CODE get_word (char **dest, char *c, char *dividers, FILE *in)
 
     buff[0] = '\0';
 
-    int amount = 0;
+    size_t amount = 0;
 
     while (!strchr(dividers, (*c = fgetc(in))) && (*c > 0))
     {
@@ -339,7 +452,7 @@ EXIT_CODE get_word (char **dest, char *c, char *dividers, FILE *in)
 
 
 
-int main (int argc, char** argv) 
+int main ()//int argc, char** argv) 
 {
     
     /*data_node* res = NULL;
@@ -358,6 +471,13 @@ int main (int argc, char** argv)
     printf("%d %s\n", out->stuff->frequency, out->stuff->key);
 
     TN_destr(&out);*/
+
+    int argc = 3;
+    
+    char *data[] = {"yes", "in.txt", ","};
+
+    char** argv = data;
+
 
     switch (input_handle(argc, argv))
     {

@@ -23,14 +23,14 @@ typedef struct
 } data_node;
 
 
-typedef struct tnode
+typedef struct tree_node
 {
 
     data_node *stuff;
 
-    struct tnode *left;
+    struct tree_node *left;
 
-    struct tnode *right;
+    struct tree_node *right;
 
 } tree_node;
 
@@ -41,9 +41,9 @@ typedef struct
 
     tree_node *root;
 
-    data_node *longest;
+    char *longest;
 
-    data_node *shortest;
+    char *shortest;
 
 } BST;
 
@@ -73,7 +73,13 @@ EXIT_CODE BST_destr (BST **dest);
 EXIT_CODE tree_destr (tree_node **root);
 
 
-EXIT_CODE add_leaf (tree_node **root, char *key);
+EXIT_CODE add_leaf (tree_node **root, char *key, BST *tree);
+
+
+EXIT_CODE shortest_longest (BST *tree, char *key);
+
+
+EXIT_CODE str_copy (char **dest, char *src);
 
 
 EXIT_CODE input_handle (int argc, char **argv);
