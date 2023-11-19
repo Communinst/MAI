@@ -9,6 +9,22 @@
 
 
 
+
+EXIT_CODE menu()
+{
+
+    printf("1 - print the longest word;\n");
+    printf("2 - print the shortest word;\n");
+    printf("3 - print /n/ the most frequent words;\n");
+    printf("4 - find the word requested;\n");
+    printf("5 - find the depth of th tree;\n");
+    printf("0 - EXIT\n");
+
+}
+
+
+
+
 EXIT_CODE DN_constr (data_node **dest, int frequency, char *key)
 {
 
@@ -34,6 +50,7 @@ EXIT_CODE DN_constr (data_node **dest, int frequency, char *key)
     }
 
     buff->frequency = frequency;
+    buff->passed = 0;
     strcpy(buff->key, key);
 
     *dest = buff;
@@ -50,6 +67,7 @@ EXIT_CODE DN_destr (data_node **dest)
     (*dest)->key = NULL;
 
     (*dest)->frequency = 0;
+    (*dest)->passed = 0;
 
     free(*dest);
     *dest = NULL;
@@ -159,41 +177,6 @@ EXIT_CODE tree_destr (tree_node **root)
 
 }
 
-/*
-EXIT_CODE add_leaf (tree_node **root, char *key)
-{
-
-    if (!(*root))
-    {
-        tree_node *new = NULL;
-
-        TN_constr(&new, 0, key);
-
-        *root = new;
-
-        if ()
-    }
-
-    else if (strcmp(key, (*root)->stuff->key) < 0)
-    {
-        add_leaf(&(*root)->left, key);
-    }
-
-    else if (strcmp(key, (*root)->stuff->key) > 0)
-    {
-        add_leaf(&(*root)->right, key);
-    }
-
-    else 
-    {
-        ((*root)->stuff->frequency)++;
-    }
-
-    return OK;
-
-
-}*/
-
 
 EXIT_CODE add_leaf (tree_node **root, char *key, BST *tree)
 {
@@ -203,7 +186,7 @@ EXIT_CODE add_leaf (tree_node **root, char *key, BST *tree)
 
         tree_node *new = NULL;
 
-        TN_constr(&new, 0, key);
+        TN_constr(&new, 1, key);
 
         *root = new;
 
@@ -211,12 +194,12 @@ EXIT_CODE add_leaf (tree_node **root, char *key, BST *tree)
 
     }
 
-    else if (strcmp(key, (*root)->stuff->key) < 0)
+    else if ((strcmp(key, (*root)->stuff->key)) < 0)
     {
         add_leaf(&(*root)->left, key, tree);
     }
 
-    else if (strcmp(key, (*root)->stuff->key) > 0)
+    else if ((strcmp(key, (*root)->stuff->key)) > 0)
     {
         add_leaf(&(*root)->right, key, tree);
     }
@@ -303,13 +286,38 @@ EXIT_CODE show_tree(tree_node *root, int tabs)
         printf("\t");
     }
 
-    printf("%s\n", root->stuff->key);
+    printf("%d %s\n", root->stuff->frequency, root->stuff->key);
 
     show_tree(root->left, tabs + 1);
 
     return OK;
 
 }
+
+
+EXIT_CODE show_n_nodes(tree_node *root, int *n)
+{
+
+    if (!root)
+    {
+        return OK;
+    }
+
+    show_n_nodes(root->right, n);
+
+    (*n) = (*n) - 1;
+
+    if (*n < 0)
+    {
+        return OK;
+    }
+
+    printf("%s - %d times; n is %d\n", root->stuff->key, root->stuff->frequency, *n);
+
+    show_n_nodes(root->left, n);
+
+}
+
 
 
 EXIT_CODE input_handle (int argc, char **argv)
@@ -325,7 +333,7 @@ EXIT_CODE input_handle (int argc, char **argv)
 
     collect_divs(&div_coll, argv + 2, argc - 2);
 
-    file_handle(argv[1], div_coll);
+    interactivity(argv[1], div_coll);
 
     free(div_coll);
 
@@ -366,8 +374,281 @@ EXIT_CODE collect_divs (char **dest, char **argv, int argc)
 }
 
 
+EXIT_CODE interactivity(char *filename, char *dividers)
+{
 
-EXIT_CODE file_handle (char *filename, char *dividers)
+    BST* res = NULL;
+    BST_init(&res);
+
+    get_tree(res, filename, dividers);
+    show_tree(res->root, 0);
+
+    int n = 2;
+
+    show_n_nodes(res->root, &n);
+
+    dialog_box(res);
+
+    BST_destr(&res);
+
+}
+
+
+
+EXIT_CODE dialog_box(BST *data)
+{
+
+    menu();
+
+    char c;
+
+    while (!feof(stdin))
+    {
+
+        c = getchar();
+
+        fflush(stdin);
+
+        if (isdigit(c))
+        {
+            if (choice_handle(c, data) != OK)
+            {
+                return EoS;
+            }
+        }
+
+    }
+        
+    return OK;
+}
+
+
+EXIT_CODE choice_handle (char choice, BST *data)
+{
+
+    switch (choice)
+    {
+        case '1':
+
+            return longest(data);
+
+        case '2':
+
+            return shortest(data);
+
+
+        case '3':
+
+            return n_frequent(data);
+
+        
+        case '5':
+
+            return get_depth(data->root);
+
+        case '0':
+
+            return EoS;
+
+
+        default:
+            printf("Unknown request! Check the menu hub.\n");
+            return OK;
+    }
+
+}
+
+
+EXIT_CODE longest (BST *data)
+{
+
+    printf("%s\n", data->longest);
+
+    return OK;
+
+}
+
+
+EXIT_CODE shortest (BST *data)
+{
+
+    printf("%s\n", data->shortest);
+
+    return OK;
+
+}
+
+
+EXIT_CODE n_frequent(BST *data)
+{
+
+    int n = 0;
+
+    printf("Enter the amount of values to print:\n");
+
+    if (get_n(&n) != OK)
+    {
+        return EoS;
+    }
+
+    char **res = (char**)malloc(sizeof(char*) * n);
+
+    if (!res)
+    {
+        return BAD_ALLOC;
+    }
+
+    for (int i = 0; i < n; i++)
+    {
+        res[i] = NULL;
+    }
+
+    char **crawl = res;
+
+    get_n_freq(crawl, data->root, n);
+
+    for (int i = 0; i < n; i++)
+    {
+
+        printf("%s\n", *(res + i));
+        free(*(res + i));
+        *(res + i) = NULL;
+        printf("%s\n", *(res + i));
+
+    }
+
+    free(res);
+
+    res = NULL;
+
+    return OK;
+
+}
+
+
+EXIT_CODE get_n(int* n)
+{
+
+    char c;
+
+    while ((c = getchar()) > 0 && c != '\n')
+    {
+
+        if (isdigit(c))
+        {
+
+            *n *= 10;
+            *n += (c - '0');
+
+        }
+
+    }
+
+    if (c < 0)
+    {
+        return EoS;
+    }
+
+    return OK;
+
+}
+
+
+EXIT_CODE get_n_freq (char **dest, tree_node *src, int n)
+{
+
+    while (n--)
+    {
+
+        int max = 0;
+
+        get_max (dest, src, &max);
+
+        dest++;
+
+    }
+
+    passed_zero(src);
+
+    return OK;
+
+
+}
+
+
+EXIT_CODE get_max (char **dest, tree_node *src, int *max)
+{
+
+    if (!src)
+    {
+        return OK;
+    }
+
+    if (*max < src->stuff->frequency && !(src->stuff->passed))
+    {
+
+        *max = src->stuff->frequency;
+
+        src->stuff->passed = 1;
+
+        free(*dest);
+
+        str_copy(dest, src->stuff->key);
+
+    }
+
+    get_max(dest, src->left, max);
+    get_max(dest, src->right, max);
+
+    return OK;
+
+}
+
+
+EXIT_CODE passed_zero (tree_node *data)
+{
+
+    if (!data)
+    {
+        return OK;
+    }
+
+    data->stuff->passed = 0;
+
+    passed_zero(data->right);
+    passed_zero(data->left);
+    
+}
+
+
+
+EXIT_CODE get_depth (tree_node *data)
+{
+
+    printf("%d\n", tree_depth(data));
+
+    return OK;
+
+}
+
+
+int tree_depth (tree_node *data)
+{
+
+    if (!data)
+    {
+        return 0;
+    }
+
+    int path1 = tree_depth(data->right);
+    int path2 = tree_depth(data->left);
+
+    return (path1 > path2) ? path1 + 1 : path2 + 1;
+
+}
+
+
+EXIT_CODE get_tree (BST *res, char *filename, char *dividers)
 {
 
     FILE* in = fopen(filename, "r");
@@ -376,10 +657,6 @@ EXIT_CODE file_handle (char *filename, char *dividers)
     {
         return NO_FILE;
     }
-
-    BST* res = NULL;
-
-    BST_init(&res);
 
     char c;
 
@@ -396,10 +673,6 @@ EXIT_CODE file_handle (char *filename, char *dividers)
 
     } while (c > 0);
     
-    show_tree(res->root, 0);
-
-    BST_destr(&res);
-
     return OK;
 
 }
@@ -423,23 +696,26 @@ EXIT_CODE get_word (char **dest, char *c, char *dividers, FILE *in)
     while (!strchr(dividers, (*c = fgetc(in))) && (*c > 0))
     {
 
-        if (amount == strlen(buff))
+        if (!isspace(*c))
         {
-
-            char* temp = (char*)realloc(buff ,sizeof(char) * ((amount + 1) * 2));
-
-            if (!temp)
+            if (amount == strlen(buff))
             {
-                return BAD_ALLOC;
+
+                char* temp = (char*)realloc(buff ,sizeof(char) * ((amount + 1) * 2));
+
+                if (!temp)
+                {
+                    return BAD_ALLOC;
+                }
+
+                buff = temp;
+
             }
 
-            buff = temp;
+            buff[amount] = *c;
 
+            buff[++amount] = '\0';
         }
-
-        buff[amount] = *c;
-
-        buff[++amount] = '\0';
 
     }
 
@@ -454,23 +730,6 @@ EXIT_CODE get_word (char **dest, char *c, char *dividers, FILE *in)
 
 int main ()//int argc, char** argv) 
 {
-    
-    /*data_node* res = NULL;
-
-    DN_constr (&res, 14, "idiot");
-
-    printf("%d %s\n", res->frequency, res->key);
-
-    DN_destr(&res);
-
-
-    tree_node *out = NULL;
-
-    TN_constr(&out, 14, "moron");
-
-    printf("%d %s\n", out->stuff->frequency, out->stuff->key);
-
-    TN_destr(&out);*/
 
     int argc = 3;
     

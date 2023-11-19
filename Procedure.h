@@ -9,6 +9,7 @@ typedef enum
     INVALID,
     BAD_ALLOC,
     NO_FILE,
+    EoS,
     
 } EXIT_CODE;
 
@@ -19,6 +20,8 @@ typedef struct
     int frequency;
 
     char* key;
+
+    int passed;
 
 } data_node;
 
@@ -87,10 +90,44 @@ EXIT_CODE input_handle (int argc, char **argv);
 
 EXIT_CODE collect_divs (char **dest, char **argv, int argc);
 
+EXIT_CODE get_n_freq(char **res, tree_node *data, int n);
+
+EXIT_CODE get_max(char** res, tree_node *data, int *max);
+
+EXIT_CODE passed_zero (tree_node *data);
+
+EXIT_CODE get_tree (BST *res, char *filename, char *dividers);
 
 
-EXIT_CODE file_handle (char *filename, char *dividers);
+EXIT_CODE interactivity(char *filename, char *dividers);
 
+
+EXIT_CODE dialog_box(BST *data);
+
+
+EXIT_CODE choice_handle(char choice, BST *data);
+
+
+EXIT_CODE longest (BST *data);
+
+
+EXIT_CODE shortest (BST *data);
+
+
+EXIT_CODE n_frequent(BST *data);
+
+
+EXIT_CODE get_depth (tree_node *data);
+
+
+int tree_depth (tree_node *data);
+
+
+
+int comp(const void *v1, const void *v2);
+
+
+EXIT_CODE get_n(int* n);
 
 
 EXIT_CODE get_word (char **dest, char *c, char *dividers, FILE *in);
