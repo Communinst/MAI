@@ -10,19 +10,62 @@
 
 
 
-EXIT_CODE menu()
+/*-------------------------------------------------MAIN--------------------------------------------------*/
+
+int main (int argc, char** argv) 
 {
 
-    printf("1 - print the longest word;\n");
-    printf("2 - print the shortest word;\n");
-    printf("3 - print /n/ the most frequent words;\n");
-    printf("4 - find the word requested;\n");
-    printf("5 - find the depth of th tree;\n");
-    printf("0 - EXIT\n");
+    /*int argc = 3;
+    
+    char *data[] = {"yes", "in.txt", ","};
+
+    char** argv = data;*/
+
+
+    switch (input_handle(argc, argv))
+    {
+        case OK:
+            printf("SUCCESS!\n");
+            break;
+        
+        case INVALID:
+            printf("Invalid input!\n");
+            break;
+
+        default:
+            break;
+    }
+
+    return 0;
 
 }
 
+/*-------------------------------------------------------------------------------------------------------*/
 
+
+
+
+/*---------------------------------------Trees-constrs-destrs--------------------------------------------*/
+
+EXIT_CODE str_copy (char **dest, char *src)
+{
+
+    size_t size = strlen(src);
+
+    char* buff = (char*)malloc(sizeof(char) * (size + 1));
+
+    if (!buff)
+    {
+        return BAD_ALLOC;
+    }
+
+    strcpy(buff, src);
+
+    *dest = buff;
+
+    return OK;
+
+}
 
 
 EXIT_CODE DN_constr (data_node **dest, int frequency, char *key)
@@ -37,7 +80,7 @@ EXIT_CODE DN_constr (data_node **dest, int frequency, char *key)
         return BAD_ALLOC;
     }
 
-    buff->key = (char *)malloc(sizeof(char) * (length + 1));
+    buff->key = (char*)malloc(sizeof(char) * (length + 1));
 
     if (!(buff->key))
     {
@@ -160,61 +203,6 @@ EXIT_CODE BST_destr (BST **dest)
 }
 
 
-EXIT_CODE tree_destr (tree_node **root)
-{
-
-    if (!(*root))
-    {
-        return OK;
-    }
-
-    tree_destr (&((*root)->left));
-    tree_destr (&((*root)->right));
-
-    TN_destr(root);
-
-    return OK;
-
-}
-
-
-EXIT_CODE add_leaf (tree_node **root, char *key, BST *tree)
-{
-
-    if (!(*root))
-    {
-
-        tree_node *new = NULL;
-
-        TN_constr(&new, 1, key);
-
-        *root = new;
-
-        shortest_longest(tree, key);
-
-    }
-
-    else if ((strcmp(key, (*root)->stuff->key)) < 0)
-    {
-        add_leaf(&(*root)->left, key, tree);
-    }
-
-    else if ((strcmp(key, (*root)->stuff->key)) > 0)
-    {
-        add_leaf(&(*root)->right, key, tree);
-    }
-
-    else 
-    {
-        ((*root)->stuff->frequency)++;
-    }
-
-    return OK;
-
-
-}
-
-
 EXIT_CODE shortest_longest (BST *tree, char *key)
 {
 
@@ -250,23 +238,57 @@ EXIT_CODE shortest_longest (BST *tree, char *key)
 }
 
 
-EXIT_CODE str_copy (char **dest, char *src)
+EXIT_CODE tree_destr (tree_node **root)
 {
 
-    size_t size = strlen(src);
-
-    char* buff = (char*)malloc(sizeof(char) * (size + 1));
-
-    if (!buff)
+    if (!(*root))
     {
-        return BAD_ALLOC;
+        return OK;
     }
 
-    strcpy(buff, src);
+    tree_destr (&((*root)->left));
+    tree_destr (&((*root)->right));
 
-    *dest = buff;
+    TN_destr(root);
 
     return OK;
+
+}
+
+
+EXIT_CODE add_leaf (tree_node **root, char *key, int frequency, BST *tree)
+{
+
+    if (!(*root))
+    {
+
+        tree_node *new = NULL;
+
+        TN_constr(&new, frequency, key);
+
+        *root = new;
+
+        shortest_longest(tree, key);
+
+    }
+
+    else if ((strcmp(key, (*root)->stuff->key)) < 0)
+    {
+        add_leaf(&(*root)->left, key, frequency, tree);
+    }
+
+    else if ((strcmp(key, (*root)->stuff->key)) > 0)
+    {
+        add_leaf(&(*root)->right, key, frequency, tree);
+    }
+
+    else 
+    {
+        ((*root)->stuff->frequency)++;
+    }
+
+    return OK;
+
 
 }
 
@@ -286,7 +308,7 @@ EXIT_CODE show_tree(tree_node *root, int tabs)
         printf("\t");
     }
 
-    printf("%d %s\n", root->stuff->frequency, root->stuff->key);
+    printf("%s %d\n", root->stuff->key, root->stuff->frequency);
 
     show_tree(root->left, tabs + 1);
 
@@ -319,6 +341,141 @@ EXIT_CODE show_n_nodes(tree_node *root, int *n)
 }
 
 
+EXIT_CODE get_tree (BST *res, char *filename, char *dividers)
+{
+
+    FILE* in = fopen(filename, "r");
+
+    if (!in)
+    {
+        return NO_FILE;
+    }
+
+    char c;
+
+    char* temp_str = NULL;
+
+    do
+    {
+
+        get_word_file(&temp_str, &c, dividers, in);
+
+        add_leaf(&(res->root), temp_str, 1, res);
+
+        free(temp_str);
+
+    } while (c > 0);
+    
+    return OK;
+
+}
+
+
+EXIT_CODE get_word_file (char **dest, char *c, char *dividers, FILE *in)
+{
+
+    char *buff = (char*)malloc(sizeof(char) * 1);
+
+    if (!buff)
+    {
+        return BAD_ALLOC;
+    }
+
+    buff[0] = '\0';
+
+    size_t amount = 0;
+
+    while (!strchr(dividers, (*c = fgetc(in))) && (*c > 0))
+    {
+
+        if (!isspace(*c))
+        {
+            if (amount == strlen(buff))
+            {
+
+                char* temp = (char*)realloc(buff ,sizeof(char) * ((amount + 1) * 2));
+
+                if (!temp)
+                {
+                    return BAD_ALLOC;
+                }
+
+                buff = temp;
+
+            }
+
+            *(buff + (amount++)) = *c;
+            *(buff + amount) = '\0';
+        }
+
+    }
+
+    *dest = buff;
+
+    return OK;
+
+}
+
+
+EXIT_CODE get_word_stdin (char **dest)
+{
+
+    char *buff = (char*)malloc(sizeof(char) * 1);
+
+    if (!buff)
+    {
+        return BAD_ALLOC;
+    }
+
+    buff[0] = '\0';
+
+    char c;
+
+    int amount = 0;
+
+    while ((c = getchar()) > 0 && c != '\n')
+    {
+
+        if (amount == strlen(buff))
+        {
+
+            char *temp = (char*)realloc(buff, sizeof(char) * (amount + 1) * 2);
+
+            if (!temp)
+            {
+                return BAD_ALLOC;
+            }
+
+            buff = temp;
+
+        }
+
+        *(buff + amount) = c;
+        *(buff + (++amount)) = '\0';
+
+    }
+
+    if (c < 0)
+    {
+
+        free(buff);
+
+        *dest = NULL;
+
+        return EoS;
+
+    }
+
+    *dest = buff;
+
+    return OK;
+
+}
+
+/*-------------------------------------------------------------------------------------------------------*/
+
+
+/*---------------------------------------------Input-hub-------------------------------------------------*/
 
 EXIT_CODE input_handle (int argc, char **argv)
 {
@@ -326,6 +483,14 @@ EXIT_CODE input_handle (int argc, char **argv)
     if (argc < 3)
     {
         return INVALID;
+    }
+
+    for (int i = 2; i < argc; i++)
+    {
+        if (strlen(argv[i]) != 1 || isspace(*argv[i]))
+        {
+            return INVALID;
+        }
     }
 
 
@@ -352,20 +517,18 @@ EXIT_CODE collect_divs (char **dest, char **argv, int argc)
         return BAD_ALLOC;
     }
 
-    buff[(argc - 2)] = '\0';
-
     char* crawl = buff;
 
     while (argc--)
     {
 
-        *crawl = **argv;
-
-        argv++;
+        *crawl = **(argv++);
 
         crawl++;
 
     }
+
+    *crawl = '\0';
 
     *dest = buff;
 
@@ -373,6 +536,10 @@ EXIT_CODE collect_divs (char **dest, char **argv, int argc)
 
 }
 
+/*-------------------------------------------------------------------------------------------------------*/
+
+
+/*----------------------------------------------Interactivity--------------------------------------------*/
 
 EXIT_CODE interactivity(char *filename, char *dividers)
 {
@@ -385,14 +552,13 @@ EXIT_CODE interactivity(char *filename, char *dividers)
 
     int n = 2;
 
-    show_n_nodes(res->root, &n);
-
     dialog_box(res);
 
     BST_destr(&res);
 
-}
+    return OK;
 
+}
 
 
 EXIT_CODE dialog_box(BST *data)
@@ -408,18 +574,30 @@ EXIT_CODE dialog_box(BST *data)
         c = getchar();
 
         fflush(stdin);
-
-        if (isdigit(c))
+            
+        if (choice_handle(c, data) != OK)
         {
-            if (choice_handle(c, data) != OK)
-            {
-                return EoS;
-            }
+            return EoS;
         }
 
     }
         
     return OK;
+}
+
+
+EXIT_CODE menu()
+{
+
+    printf("1 - print the longest word;\n");
+    printf("2 - print the shortest word;\n");
+    printf("3 - print /n/ the most frequent words;\n");
+    printf("4 - find the word requested;\n");
+    printf("5 - find the depth of th tree;\n");
+    printf("6 - print a tree into a defined file;\n");
+    printf("7 - read a tree from a defined file;\n");
+    printf("0 - EXIT\n");
+
 }
 
 
@@ -441,10 +619,34 @@ EXIT_CODE choice_handle (char choice, BST *data)
 
             return n_frequent(data);
 
+
+        case '4':
+
+            return find_word(data->root);
         
+
         case '5':
 
             return get_depth(data->root);
+
+        
+        case '6':
+
+            return print_tree_file(data);
+
+        case '7':
+
+            BST *new_file_tree;
+
+            BST_init(&new_file_tree);
+
+            get_new_tree_file(new_file_tree);
+
+            show_tree(new_file_tree->root, 0);
+
+            BST_destr(&new_file_tree);
+
+            return OK;
 
         case '0':
 
@@ -458,7 +660,12 @@ EXIT_CODE choice_handle (char choice, BST *data)
 
 }
 
+/*-------------------------------------------------------------------------------------------------------*/
 
+
+/*------------------------------------------------Task-A-------------------------------------------------*/
+
+//1
 EXIT_CODE longest (BST *data)
 {
 
@@ -469,6 +676,7 @@ EXIT_CODE longest (BST *data)
 }
 
 
+//2
 EXIT_CODE shortest (BST *data)
 {
 
@@ -479,6 +687,7 @@ EXIT_CODE shortest (BST *data)
 }
 
 
+//3
 EXIT_CODE n_frequent(BST *data)
 {
 
@@ -513,7 +722,6 @@ EXIT_CODE n_frequent(BST *data)
         printf("%s\n", *(res + i));
         free(*(res + i));
         *(res + i) = NULL;
-        printf("%s\n", *(res + i));
 
     }
 
@@ -621,11 +829,66 @@ EXIT_CODE passed_zero (tree_node *data)
 }
 
 
+//4
+EXIT_CODE find_word (tree_node *data)
+{
 
+    EXIT_CODE assist = OK;
+
+    char *to_find;
+
+    printf("Enter a word to find: ");
+
+    assist = get_word_stdin(&to_find);
+
+    int amount = 0;
+
+    meet_frequency (to_find, data, &amount);
+
+    printf("\"%s\" meets in base %d times!\n", to_find, amount);
+
+    if (!amount)
+    {
+        printf("Apparently \"%s\" is out of base.\n", to_find);
+    }
+
+    free(to_find);    
+
+    return assist;
+
+}
+
+
+EXIT_CODE meet_frequency (char *to_find, tree_node *data, int *amount)
+{
+
+    if (!data)
+    {
+        return OK;
+    }
+
+    if (!strcmp(data->stuff->key, to_find))
+    {
+        *amount = data->stuff->frequency;
+    }
+
+    meet_frequency(to_find, data->right, amount);
+    meet_frequency(to_find, data->left, amount);
+
+    return OK;
+
+}
+
+/*-------------------------------------------------------------------------------------------------------*/
+
+
+/*--------------------------------------------------Task-B-----------------------------------------------*/
+
+//5
 EXIT_CODE get_depth (tree_node *data)
 {
 
-    printf("%d\n", tree_depth(data));
+    printf("Depth of tree is equals to %d\n", tree_depth(data));
 
     return OK;
 
@@ -647,39 +910,205 @@ int tree_depth (tree_node *data)
 
 }
 
+/*-------------------------------------------------------------------------------------------------------*/
 
-EXIT_CODE get_tree (BST *res, char *filename, char *dividers)
+
+/*--------------------------------------------------Task-C-----------------------------------------------*/
+
+EXIT_CODE print_tree_file (BST *data)
 {
 
-    FILE* in = fopen(filename, "r");
+    EXIT_CODE assist = OK;
 
-    if (!in)
+    char* out_name;
+
+    printf("Put in a name of file to be filled with tree: ");
+
+    assist = get_word_stdin(&out_name);
+
+    FILE* out = fopen(out_name, "w");
+
+    if (!out)
     {
+        free(out_name);
         return NO_FILE;
     }
 
-    char c;
+    fprintf(out, "BST\n%s %s\n", data->longest, data->shortest);
 
-    char* temp_str = NULL;
+    prefix_write(data->root, out, 0);
 
-    do
+    free(out_name);
+
+    fclose(out);
+
+    return assist;
+
+}   
+
+
+EXIT_CODE prefix_write (tree_node *data, FILE* out, int tabs)
+{
+
+    if (!data)
+    {
+        return OK;
+    }
+
+    for (int i = 0; i < tabs; i++)
     {
 
-        get_word(&temp_str, &c, dividers, in);
+        fprintf(out, "\t");
 
-        add_leaf(&(res->root), temp_str, res);
+    }
 
-        free(temp_str);
+    fprintf(out, "%s %d\n", data->stuff->key, data->stuff->frequency);
 
-    } while (c > 0);
+    prefix_write(data->left, out, tabs + 1);
+    prefix_write(data->right, out, tabs + 1);
+
+}
+
+
+EXIT_CODE get_new_tree_file (BST *dest)
+{
+
+    EXIT_CODE assist = OK;
+
+    char *in_name;
+
+    printf("Put in a name of file containing BST: ");
+
+    assist = get_word_stdin(&in_name);
+
+    FILE *in = fopen(in_name, "r");
+
+    if (!in)
+    {
+        free(in_name);
+        return NO_FILE;
+    }
+
+    if ((file_valid(in) != OK))
+    {
+
+        printf("Invalid file stuff!\n");
+
+        fclose(in);
+
+        free(in_name);
+        
+        return assist;
     
+    }
+
+    read_tree_file(dest, in);
+
+    fclose(in);
+
+    free(in_name);
+
     return OK;
 
 }
 
 
+EXIT_CODE file_valid (FILE *in)
+{
 
-EXIT_CODE get_word (char **dest, char *c, char *dividers, FILE *in)
+    char *flag_valid;
+
+    char c;
+
+    char *dividers = (char*)malloc(sizeof(char) * 2);
+
+    if (!dividers)
+    {
+        return BAD_ALLOC;
+    }
+
+    dividers[0] = '\n';
+    dividers[1] = '\0';
+
+    get_word_file (&flag_valid, &c, dividers, in);
+
+    if (!strcmp(flag_valid, "BST"))
+    {
+        return OK;
+    }
+
+    return INVALID;
+
+}
+
+
+EXIT_CODE read_tree_file (BST *dest, FILE *in)
+{
+
+    get_max_min(dest, in);
+
+    char *key = NULL;
+
+    int freq;
+
+    char c = 1;
+
+    printf("%s -> %s\n", dest->longest, dest->shortest);
+
+    while (c > 0)
+    {
+
+        freq = 0;
+
+        fget_data_node(in, &key, &freq, &c);
+
+        printf("%s %d!\n", key, freq);
+
+        add_leaf(&(dest->root), key, freq, dest);
+
+        free(key);
+
+    }
+
+    return OK;
+
+}
+
+
+EXIT_CODE get_max_min (BST *dest, FILE *in)
+{
+
+    char *max = NULL;
+
+    char *min = NULL;
+
+    char c;
+
+    char *dividers = (char*)malloc(sizeof(char) * 2);
+
+    if (!dividers)
+    {
+        return BAD_ALLOC;
+    }
+
+    dividers[0] = '\n';
+    dividers[1] = '\0';
+
+    get_word_file(&max, &c, " ", in);
+    get_word_file(&min, &c, dividers, in);
+
+    str_copy(&(dest->longest), max);
+    str_copy(&(dest->shortest), min);
+
+    free(max);
+    free(min);
+
+    return OK;
+
+}
+
+
+EXIT_CODE fget_data_node (FILE *in, char **key, int *frequency, char *c)
 {
 
     char *buff = (char*)malloc(sizeof(char) * 1);
@@ -691,67 +1120,62 @@ EXIT_CODE get_word (char **dest, char *c, char *dividers, FILE *in)
 
     buff[0] = '\0';
 
-    size_t amount = 0;
+    int amount = 0;
 
-    while (!strchr(dividers, (*c = fgetc(in))) && (*c > 0))
+    int order = 0;
+
+    while ((*c = fgetc(in)) != '\n' && *c >= 0)
     {
 
-        if (!isspace(*c))
+        if (*c == ' ')
         {
-            if (amount == strlen(buff))
+            order = 1;
+        }
+
+        if (*c != '\t' && *c != ' ')
+        {
+
+            if (!order)
             {
 
-                char* temp = (char*)realloc(buff ,sizeof(char) * ((amount + 1) * 2));
-
-                if (!temp)
+                if (amount == strlen(buff))
                 {
-                    return BAD_ALLOC;
+
+                    char *temp = (char*)realloc(buff, sizeof(char) * (amount + 1) * 2);
+
+                    if (!temp)
+                    {
+                        return BAD_ALLOC;
+                    }
+
+                    buff = temp;
+
                 }
 
-                buff = temp;
+                *(buff + (amount++)) = *c;
+                *(buff + amount) = '\0';
 
             }
 
-            buff[amount] = *c;
+            if (order)
+            {
 
-            buff[++amount] = '\0';
+                printf("%c?", *c);
+
+                *frequency *= 10;
+                *frequency += (*c - '0');
+
+                printf("%d!\n", *frequency);
+
+            }
         }
 
     }
 
-    *dest = buff;
+    *key = buff;
 
     return OK;
 
 }
 
-
-
-
-int main ()//int argc, char** argv) 
-{
-
-    int argc = 3;
-    
-    char *data[] = {"yes", "in.txt", ","};
-
-    char** argv = data;
-
-
-    switch (input_handle(argc, argv))
-    {
-        case OK:
-            printf("SUCCESS!\n");
-            break;
-        
-        case INVALID:
-            printf("Invalid input!\n");
-            break;
-
-        default:
-            break;
-    }
-
-    return 0;
-
-}
+/*-------------------------------------------------------------------------------------------------------*/
