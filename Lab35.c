@@ -155,8 +155,6 @@ EXIT_CODE append_vector (Vector_st *dest, Student *to_add)
 
     }
 
-    printf("%llu\n", dest->stored);
-
     *(dest->element + (dest->stored)) = to_add;
 
     (dest->stored)++;
@@ -173,12 +171,12 @@ EXIT_CODE display_vector (Vector_st *dest)
     printf("Occupied memory slots: %d\n", dest->stored);
     printf("Actual items stored: \n\n");
 
-    Student *cr = *(dest->element);
+    Student **cr = dest->element;
 
     for (int i = 0; i < dest->stored; i++)
     {
 
-        printf("%d %s %s %s %hhu %hhu %hhu %hhu %hhu\n", cr->id, cr->surname, cr->name, cr->group, cr->grades[0], cr->grades[1], cr->grades[2], cr->grades[3],cr->grades[4]);
+        printf("%d %s %s %s %hhu %hhu %hhu %hhu %hhu\n", (*cr)->id, (*cr)->surname, (*cr)->name, (*cr)->group, (*cr)->grades[0], (*cr)->grades[1],(*cr)->grades[2],(*cr)->grades[3],(*cr)->grades[4]);
 
         cr++;
 
@@ -192,12 +190,12 @@ EXIT_CODE display_vector (Vector_st *dest)
 EXIT_CODE destr_vector (Vector_st **dest)
 {
 
-    Student *crawler = *((*dest)->element);
+    Student **crawler = (*dest)->element;
     
     while ((*dest)->stored)
     {
 
-        student_destr(&(crawler));
+        student_destr(crawler);
 
         crawler++;
 
@@ -672,6 +670,9 @@ EXIT_CODE choice_handle (char choice, Vector_st *base, char *out_name)
             return sort_vector(base);
 
 
+
+
+
         case '9':
 
             display_vector(base);
@@ -761,10 +762,10 @@ EXIT_CODE sort_menu ()
 int id_cmp (void const *v1, void const *v2)
 {
 
-    Student *s1 = (Student*)v1;
-    Student *s2 = (Student*)v2;
+    Student const *s1 = (Student const *)v1;
+    Student const *s2 = (Student const *)v2;
 
-    return s1->id - s2->id;
+    return s2->id - s1->id;
 
 }
 
@@ -772,8 +773,8 @@ int id_cmp (void const *v1, void const *v2)
 int surname_cmp (void const *v1, void const *v2)
 {
 
-    Student *s1 = (Student*)v1;
-    Student *s2 = (Student*)v2;
+    Student const *s1 = (Student const *)v1;    
+    Student const *s2 = (Student const *)v2;
 
     return strcmp(s1->surname, s2->surname);
 
@@ -783,8 +784,8 @@ int surname_cmp (void const *v1, void const *v2)
 int name_cmp (void const *v1, void const *v2)
 {
 
-    Student *s1 = (Student*)v1;
-    Student *s2 = (Student*)v2;
+    Student const *s1 = (Student const *)v1;
+    Student const *s2 = (Student const *)v2;
 
     return strcmp(s1->name, s2->name);
 
@@ -794,11 +795,15 @@ int name_cmp (void const *v1, void const *v2)
 int group_cmp (void const *v1, void const *v2)
 {
 
-    Student *s1 = (Student*)v1;
-    Student *s2 = (Student*)v2;
+    Student const *s1 = (Student const *)v1;
+    Student const *s2 = (Student const *)v2;
 
     return strcmp(s1->group, s2->group);
 
 }
+
+
+
+
 
 
