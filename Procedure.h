@@ -48,8 +48,35 @@ typedef struct
 
     size_t capacity;
 
+    double average_score;
+
 } Vector_st;
 
+
+
+EXIT_CODE free_str (int amount, ...);
+
+
+EXIT_CODE str_to_ll (char *src, long long int *dest);
+
+
+double machine_EPS ();
+
+
+
+EXIT_CODE student_constr (Student **dest, unsigned int id, char *surname, char *name, char *group, unsigned char *grades);
+
+
+EXIT_CODE student_destr (Student **dest);
+
+
+EXIT_CODE init_vector (Vector_st *dest);
+
+
+size_t size_vector (Vector_st *inst);
+
+
+EXIT_CODE append_vector (Vector_st *dest, Student *to_add);
 
 
 
@@ -81,16 +108,6 @@ EXIT_CODE get_grades (unsigned char **dest, FILE *in, char *c);
 
 
 
-EXIT_CODE init_vector (Vector_st *dest);
-
-
-size_t size_vector (Vector_st *inst);
-
-
-EXIT_CODE append_vector (Vector_st *dest, Student *to_add);
-
-
-
 EXIT_CODE dialog (Vector_st *base, char *out_name);
 
 
@@ -106,7 +123,7 @@ EXIT_CODE choice_handle (char choice, Vector_st *base, char *out_name);
 EXIT_CODE sort_vector (Vector_st *dest);
 
 
-EXIT_CODE sort_menu();
+EXIT_CODE sort_find_menu();
 
 
 int id_cmp (void const *v1, void const *v2);
@@ -119,5 +136,31 @@ int name_cmp (void const *v1, void const *v2);
 
 
 int group_cmp (void const *v1, void const *v2);
+
+
+
+EXIT_CODE find_student (Vector_st *base, char *out_name);
+
+
+EXIT_CODE get_word_stdin (char **dest, char *c);
+
+
+EXIT_CODE find_handle (Vector_st *base, char choice, char **to_find, char *out_name);
+
+
+EXIT_CODE id_find (Vector_st *base, char *to_find, char *out_name);
+
+
+EXIT_CODE surname_find (Vector_st *base, char *to_find, char *out_name);
+
+
+EXIT_CODE name_find (Vector_st *base, char *to_find, char *out_name);
+
+
+EXIT_CODE group_find (Vector_st *base, char *to_find, char *out_name);
+
+
+EXIT_CODE above_average (Vector_st *base, char *out_name, double EPS);
+
 
 #endif

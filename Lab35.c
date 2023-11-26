@@ -72,6 +72,34 @@ EXIT_CODE free_str (int amount, ...)
 }
 
 
+EXIT_CODE str_to_ll (char *src, long long int *dest)
+{
+
+    char *end_ptr;
+
+    *dest = strtol(src, &end_ptr, 10);
+
+    return (end_ptr == src + strlen(src)) ? OK : INVALID;
+
+}
+
+
+double machine_EPS ()
+{
+
+    double machine_eps = 1;
+
+    while (1.0 + machine_eps > 1.0)
+    {
+        machine_eps /= 2;
+
+    }
+
+    return machine_eps;
+
+}
+
+
 EXIT_CODE student_constr (Student **dest, unsigned int id, char *surname, char *name, char *group, unsigned char *grades)
 {
 
@@ -124,6 +152,7 @@ EXIT_CODE init_vector (Vector_st *dest)
     dest->element = NULL;
     dest->stored = 0;
     dest->capacity = 0;
+    dest->average_score = 0;
 
 }
 
@@ -159,6 +188,15 @@ EXIT_CODE append_vector (Vector_st *dest, Student *to_add)
 
     (dest->stored)++;
 
+    for (int i = 0; i < GRADESSIZE; i++)
+    {
+
+        dest->average_score += (to_add->grades[i]) - '0';
+
+    }
+
+    printf("%llf\n", dest->average_score);
+
     return OK;
 
 }
@@ -176,7 +214,7 @@ EXIT_CODE display_vector (Vector_st *dest)
     for (int i = 0; i < dest->stored; i++)
     {
 
-        printf("%d %s %s %s %hhu %hhu %hhu %hhu %hhu\n", (*cr)->id, (*cr)->surname, (*cr)->name, (*cr)->group, (*cr)->grades[0], (*cr)->grades[1],(*cr)->grades[2],(*cr)->grades[3],(*cr)->grades[4]);
+        printf("%d %s %s %s %c %c %c %c %c\n", (*cr)->id, (*cr)->surname, (*cr)->name, (*cr)->group, (*cr)->grades[0], (*cr)->grades[1],(*cr)->grades[2],(*cr)->grades[3],(*cr)->grades[4]);
 
         cr++;
 
@@ -268,6 +306,10 @@ EXIT_CODE get_vector (Vector_st *dest, char *in_name)
     }
 
     fill_vector (dest, in_stream);
+
+    dest->average_score /= (5.0 * dest->stored);
+
+    printf("\n%llf\n", dest->average_score);
 
     fclose(in_stream);
 
@@ -609,6 +651,7 @@ EXIT_CODE dialog (Vector_st *base, char *out_name)
 
     choice_menu();
 
+
     char choice = 1;
 
     while (!feof(stdin))
@@ -645,6 +688,9 @@ EXIT_CODE choice_menu ()
     printf("|---------------------------------------------------------------|\n");
     printf("|               1 - sort the student collection;                |\n");
     printf("|                 2 - find particular student                   |\n");
+    printf("|      3 - find student with average > base average grade       |\n");
+    printf("|                        4 - display base                       |\n");
+    printf("|                            0 - EXIT                           |\n");
     printf("|---------------------------------------------------------------|\n");
 
 }
@@ -669,11 +715,19 @@ EXIT_CODE choice_handle (char choice, Vector_st *base, char *out_name)
 
             return sort_vector(base);
 
+        case '2':
 
+            return find_student(base, out_name);
 
+        case '3':
 
+            double EPS = machine_EPS();
 
-        case '9':
+            above_average(base, out_name, EPS);
+
+            break;
+        
+        case '4':
 
             display_vector(base);
             break;
@@ -695,7 +749,7 @@ EXIT_CODE choice_handle (char choice, Vector_st *base, char *out_name)
 EXIT_CODE sort_vector (Vector_st *dest)
 {
 
-    sort_menu();
+    sort_find_menu();
 
     char choice;
 
@@ -745,27 +799,27 @@ EXIT_CODE sort_vector (Vector_st *dest)
 }
 
 
-EXIT_CODE sort_menu ()
+EXIT_CODE sort_find_menu ()
 {
 
     printf("|---------------------------------------------------------------|\n");
-    printf("|                        i - sort by id;                        |\n");
-    printf("|                      s - sort by surname;                     |\n");
-    printf("|                       n - sort by name;                       |\n");
-    printf("|                       g - sort by group;                      |\n");
+    printf("|                   i - sort/find by id;                        |\n");
+    printf("|                 s - sort/find by surname;                     |\n");
+    printf("|                  n - sort/find by name;                       |\n");
+    printf("|                  g - sort/find by group;                      |\n");
     printf("|                           b - back;                           |\n");
     printf("|---------------------------------------------------------------|\n");
 
 }
 
 
-int id_cmp (void const *v1, void const *v2)
+int id_cmp (const void *v1, const void *v2)
 {
 
-    Student const *s1 = (Student const *)v1;
-    Student const *s2 = (Student const *)v2;
+    const Student **s1 = (const Student **)v1;
+    const Student **s2 = (const Student **)v2;
 
-    return s2->id - s1->id;
+    return (*s1)->id - (*s2)->id;
 
 }
 
@@ -773,10 +827,10 @@ int id_cmp (void const *v1, void const *v2)
 int surname_cmp (void const *v1, void const *v2)
 {
 
-    Student const *s1 = (Student const *)v1;    
-    Student const *s2 = (Student const *)v2;
+    const Student **s1 = (const Student **)v1;    
+    const Student **s2 = (const Student **)v2;
 
-    return strcmp(s1->surname, s2->surname);
+    return strcmp((*s1)->surname, (*s2)->surname);
 
 }
 
@@ -784,10 +838,10 @@ int surname_cmp (void const *v1, void const *v2)
 int name_cmp (void const *v1, void const *v2)
 {
 
-    Student const *s1 = (Student const *)v1;
-    Student const *s2 = (Student const *)v2;
+    const Student **s1 = (const Student **)v1;
+    const Student **s2 = (const Student **)v2;
 
-    return strcmp(s1->name, s2->name);
+    return strcmp((*s1)->name, (*s2)->name);
 
 }
 
@@ -795,15 +849,316 @@ int name_cmp (void const *v1, void const *v2)
 int group_cmp (void const *v1, void const *v2)
 {
 
-    Student const *s1 = (Student const *)v1;
-    Student const *s2 = (Student const *)v2;
+    const Student **s1 = (const Student **)v1;
+    const Student **s2 = (const Student **)v2;
 
-    return strcmp(s1->group, s2->group);
+    return strcmp((*s1)->group, (*s1)->group);
 
 }
 
 
 
+EXIT_CODE find_student (Vector_st *base, char *out_name)
+{
+
+    sort_find_menu();
+
+    char *to_find;
+
+    char c = 1;
+
+    printf("\nEnter the value to search by: ");
+
+    get_word_stdin(&to_find, &c);
+
+    if (c < 0)
+    {
+        free(to_find);
+        return INVALID_EXIT;
+    }
+
+    printf("\nSelect an option to search: ");
+
+    get_choice(&c);
+
+    if (c < 0)
+    {
+        free(to_find);
+        return INVALID_EXIT;
+    }
+
+    return find_handle(base, c, &to_find, out_name);
+
+}
 
 
+EXIT_CODE get_word_stdin (char **dest, char *c)
+{
+
+    char *buff = (char*)malloc(sizeof(char) * 1);
+
+    if (!buff)
+    {
+        return BAD_ALLOC;
+    }
+
+    *buff = '\0';
+
+    int amount = 0;
+
+    while ((*c = getchar()) > 0 && *c != '\n')
+    {
+
+        if (amount == strlen(buff))
+        {
+
+            char *temp = (char*)realloc(buff ,sizeof(char) * ((amount + 1) * 2));
+
+            if (!temp)
+            {
+                return BAD_ALLOC;
+            }
+
+            buff = temp;
+
+        }
+
+        *(buff + amount) = *c;
+
+        *(buff + (++amount)) = '\0';
+
+    }
+
+    *dest = buff;
+
+    return OK;
+
+}
+
+
+
+EXIT_CODE find_handle (Vector_st *base, char choice, char **to_find, char *out_name)
+{
+
+    switch(choice)
+    {
+
+        case 'i':
+
+            id_find(base, *to_find, out_name);
+            break;
+        
+        case 's':
+
+            surname_find(base, *to_find, out_name);
+            break;
+        
+        case 'n':
+
+            name_find(base, *to_find, out_name);
+            break;
+
+        case 'g':
+
+            group_find(base, *to_find, out_name);
+            break;
+
+        default:
+
+            break;
+
+    }
+
+    free(*to_find);
+
+    *to_find = NULL;
+
+    return OK;
+
+}
+
+
+EXIT_CODE id_find (Vector_st *base, char *to_find, char *out_name)
+{
+
+    FILE *trace = fopen(out_name, "w");
+
+    if (!trace)
+    {
+        return NO_FILE;
+    } 
+
+    long long int id;
+    
+    if (str_to_ll(to_find, &id) != OK)
+    {
+
+        printf("Done!\n");
+
+        fclose(trace);
+
+        return OK;
+
+    }
+
+    Student **crawler = base->element;
+
+    for (int i = 0; i < base->stored; i++)
+    {
+
+        if (id == (*crawler)->id)
+        {
+            fprintf(trace, "id %lld: %s %s %s %llf\n", id, (*crawler)->surname, (*crawler)->name, (*crawler)->group, (((*crawler)->grades[0] + (*crawler)->grades[1] + (*crawler)->grades[2] + (*crawler)->grades[3] + (*crawler)->grades[4] - ('0' * 5)) / 5.0));
+        }
+
+        crawler++;
+
+    }
+
+    printf("Done!\n");
+
+    fclose(trace);
+
+    return OK;
+
+}
+
+
+EXIT_CODE surname_find (Vector_st *base, char *to_find, char *out_name)
+{
+
+    FILE *trace = fopen(out_name, "w");
+
+    if (!trace)
+    {
+        return NO_FILE;
+    } 
+
+    Student **crawler = base->element;
+
+    for (int i = 0; i < base->stored; i++)
+    {
+
+        if (!strcmp(to_find, (*crawler)->surname))
+        {
+            fprintf(trace, "%u %s %s %s %c %c %c %c %c\n", (*crawler)->id, (*crawler)->surname, (*crawler)->name, (*crawler)->group, (*crawler)->grades[0], (*crawler)->grades[1], (*crawler)->grades[2], (*crawler)->grades[3], (*crawler)->grades[4]);
+        }
+
+        crawler++;
+
+    }
+
+    printf("Done!\n");
+
+    fclose(trace);
+
+    return OK;
+
+}
+
+
+EXIT_CODE name_find (Vector_st *base, char *to_find, char *out_name)
+{
+
+    FILE *trace = fopen(out_name, "w");
+
+    if (!trace)
+    {
+        return NO_FILE;
+    } 
+
+    Student **crawler = base->element;
+
+    for (int i = 0; i < base->stored; i++)
+    {
+
+        if (!strcmp(to_find, (*crawler)->name))
+        {
+            fprintf(trace, "%u %s %s %s %c %c %c %c %c\n", (*crawler)->id, (*crawler)->surname, (*crawler)->name, (*crawler)->group, (*crawler)->grades[0], (*crawler)->grades[1], (*crawler)->grades[2], (*crawler)->grades[3], (*crawler)->grades[4]);
+        }
+
+        crawler++;
+
+    }
+
+    printf("Done!\n");
+
+    fclose(trace);
+
+    return OK;
+
+}
+
+
+EXIT_CODE group_find (Vector_st *base, char *to_find, char *out_name)
+{
+
+    FILE *trace = fopen(out_name, "w");
+
+    if (!trace)
+    {
+        return NO_FILE;
+    } 
+
+    Student **crawler = base->element;
+
+    for (int i = 0; i < base->stored; i++)
+    {
+
+        if (!strcmp(to_find, (*crawler)->group))
+        {
+            fprintf(trace, "%u %s %s %s %c %c %c %c %c\n", (*crawler)->id, (*crawler)->surname, (*crawler)->name, (*crawler)->group, (*crawler)->grades[0], (*crawler)->grades[1], (*crawler)->grades[2], (*crawler)->grades[3], (*crawler)->grades[4]);
+        }
+
+        crawler++;
+
+    }
+
+    printf("Done!\n");
+
+    fclose(trace);
+
+    return OK;
+
+}
+
+
+
+EXIT_CODE above_average (Vector_st *base, char *out_name, double EPS)
+{
+
+    FILE *trace = fopen(out_name, "w");
+
+    if (!trace)
+    {
+        return NO_FILE;
+    }
+
+    Student **crawler = base->element;
+
+    for (int i = 0; i < base->stored; i++)
+    {
+
+        double av = ((*crawler)->grades[0] + (*crawler)->grades[1] + (*crawler)->grades[2] + (*crawler)->grades[3] + (*crawler)->grades[4] - ('0' * 5)) / 5.0;
+
+        if (av - base->average_score >= EPS)
+        {
+
+            fprintf(trace, "Average of %s %s (id: %u) is: %llf\n", (*crawler)->surname, (*crawler)->name, (*crawler)->id, av);
+
+        }
+
+        crawler++;
+
+    }
+
+    printf("Done!\n");
+
+    fclose(trace);
+
+    return OK;
+
+
+
+}
 
