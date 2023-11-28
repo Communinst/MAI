@@ -1,0 +1,9 @@
+print;
+var=1;
+var=var+9;
+bum=var*2;
+u=bum/var;
+print u;
+var=var%bum;
+bum=bum-u;
+print;
