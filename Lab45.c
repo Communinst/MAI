@@ -863,7 +863,7 @@ EXIT_CODE get_name (char** dest)
 
     *dest = filename;
 
-    srand(seed);
+    srand(time(NULL) * seed);
 
 }
 
