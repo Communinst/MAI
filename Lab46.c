@@ -29,6 +29,16 @@ int main ()//int argc, char **argv)
             printf("Success!\n");
             break;
 
+        case INVALID:
+
+            printf("Invalid instance!\n");
+            break;
+
+        case NO_FILE:
+
+            printf("File's missing!\n");
+            break;
+
     }
 
     return 0;
@@ -371,62 +381,69 @@ EXIT_CODE tree_display (T_node *root, int tabs)
 }
 
 
-EXIT_CODE calc_tree (FILE *dest, T_node *root, int combs, int mask_sup, char *vars)
-{
-
-    if (!root)
-    {
-        return OK;
-    }
-
-    if (root->left->format != CONST && root->left->format != VAR)
-    {
-        calc_tree(dest, root->left, combs, mask_sup, vars);
-    }
-
-    if (root->right->format != CONST && root->right->format != VAR)
-    {
-        calc_tree(dest, root->right, combs, mask_sup, vars);
-    }
-
-    calc_expr(root, root->left, root->right, combs, mask_sup, vars);
-
-    tnode_destr(&(root->left));
-    tnode_destr(&(root->right));
-
-}
-
-
-EXIT_CODE calc_expr (T_node *func, T_node *operand1, T_node *operand2, int comb, int amount, char *vars)
+int calc_tree (T_node *root, int combs, int mask_sup, char *vars)
 {
 
     int res = 0;
 
     int o1 = 0;
+
     int o2 = 0;
 
-    if (!operand1)
+    
+    if (root->format == INVER)
     {
-        o2 = comb & (1 << (amount - (strchr(vars, operand2->data) - vars + 1)));
-    }
+        if (!(root->left))
+        {
+            o1 = calc_tree(root->right, combs, mask_sup, vars);
+        }
 
-    else if (!operand2)
-    {
-        o1 = comb & (1 << (amount - (strchr(vars, operand1->data) - vars + 1)));
+        else 
+        {
+            o1 = calc_tree(root->left, combs, mask_sup, vars);
+        }
+
+        execute_op(root->format, o1, 0, &res);
+
+        return res;
     }
 
     else 
     {
-        o1 = comb & (1 << (amount - (strchr(vars, operand1->data) - vars + 1)));
-        o2 = comb & (1 << (amount - (strchr(vars, operand2->data) - vars + 1)));
+        if (root->left->format > CONST)
+        {
+            o2 = calc_tree(root->left, combs, mask_sup, vars);
+        }
+        
+        else if (root->left->format == CONST)
+        {
+            o2 = root->left->data - '0';
+        }
+
+        else if (root->left->format == VAR)
+        {
+            o2 = (combs & (1 << (mask_sup - (strchr(vars, root->left->data) - vars + 1)))) ? 1 : 0;
+        }
+
+        if (root->right->format > CONST)
+        {
+            o1 = calc_tree(root->right, combs, mask_sup, vars);
+        }
+
+        else if (root->right->format == CONST)
+        {
+            o1 = root->right->data - '0';
+        }
+
+        else if (root->right->format == VAR)
+        {
+            o1 = (combs & (1 << (mask_sup - (strchr(vars, root->right->data) - vars + 1)))) ? 1 : 0;
+        }
     }
 
-    execute_op(func->format, o1, o2, &res);
+    execute_op(root->format, o1, o2, &res);
 
-    func->format = CONST;
-    func->data = res;
-
-    return OK;
+    return res;
 
 }
 
@@ -439,22 +456,22 @@ EXIT_CODE execute_op (DATAFORMAT func, int o1, int o2, int *res)
         
         case INVER:
 
-            *res = o1 ^ 1;
+            *res = !o1;
             break;
 
         case WEBB_FUNCTION: 
 
-            *res = (o1 & o2) ^ 1;
+            *res = !(o1 & o2);
             break;
 
         case SHEFFER_STROKE:
 
-            *res = (o1 | o2) ^ 1;
+            *res = !(o1 | o2);
             break;
 
         case COIMPLIC:
 
-            *res = (o1 <= o2) ^ 1;
+            *res = !(o1 <= o2);
             break;
 
         case CONJ:
@@ -484,10 +501,6 @@ EXIT_CODE execute_op (DATAFORMAT func, int o1, int o2, int *res)
     }
 
 }
-
-
-
-
 
 
 EXIT_CODE BST_destr (BST **dest)
@@ -614,7 +627,7 @@ EXIT_CODE get_polish (Stack *dest, FILE *src, String* vars)
 
     char c = 1;
 
-    char prev = 1;
+    DATAFORMAT prev = 0;
 
     int is_bracket = 0;
 
@@ -624,26 +637,54 @@ EXIT_CODE get_polish (Stack *dest, FILE *src, String* vars)
     assist = stack_init(&op_order);
 
 
-    String *op = NULL;
-
-    assist = assist ? assist : string_init(&op);
+    char b = 0;
 
 
     while ((c = fgetc(src)) > 0 && !assist)
     {
-
+/*
         if (!isdigit(c) && !isalpha(c))
         {
 
+            assist = (identify_op(c) > CONST && prev > CONST) ? INVALID : assist;
+
             if (c == '>')
             {
-                df = identify_op(*(op->word + (op->occupied - 2)));
+                if (identify_op(b) > 10)
+                {
+                    string_append(op ,b);
+                    b = 0;
+                }
 
-                assist = (!df) ? INVALID : OK;
+                else
+                {
+                    assist = INVALID;
+                }
             }
             else
             {
-                string_append(op, c);
+
+                if (b)
+                {
+                    assist = INVALID;
+                }
+
+                else if (c == '-' || c == '+' || c == '<')
+                {
+                    b = c;
+                }
+
+                else 
+                {
+                    if (c == ')')
+                    {
+                        is_bracket--;
+                    }
+
+                    prev = L_BRACKET;
+
+                    assist = assist ? assist : string_append(op, c);
+                }
             }
             
         }
@@ -682,6 +723,10 @@ EXIT_CODE get_polish (Stack *dest, FILE *src, String* vars)
 
             df = identify_format(c);
 
+            assist = (df == prev) ? INVALID : assist;
+
+            prev = df;
+
             assist = (!df) ? INVALID : assist; 
 
             T_node *new = NULL;
@@ -690,7 +735,7 @@ EXIT_CODE get_polish (Stack *dest, FILE *src, String* vars)
 
             assist = assist ? assist : push(dest, new);
 
-            if ((vars->occupied == 1 || strchr(vars->word, c) == NULL) && !assist)
+            if ((vars->occupied == 1 || strchr(vars->word, c) == NULL) && !assist && isalpha(c))
             {
                 assist = string_append(vars, c);
             }
@@ -701,11 +746,18 @@ EXIT_CODE get_polish (Stack *dest, FILE *src, String* vars)
 
     if (!assist)
     {
-        assist = (!is_bracket) ? assist : INVALID;
+        assist = (is_bracket || b) ? INVALID : assist;
 
         if (!assist)
         {
+            if (op->word)
+            {
+                df = identify_op(*(op->word)); 
 
+                assist = (!df) ? INVALID : op_handle(dest, op_order, df, &is_bracket);
+
+                purge_str(op);
+            }
             while (!is_stack_empty(op_order))
             {
 
@@ -719,6 +771,91 @@ EXIT_CODE get_polish (Stack *dest, FILE *src, String* vars)
     }
 
     string_destr(&op);
+
+    stack_destr(&op_order);
+
+    return assist;
+*/
+
+        T_node *new = NULL;
+
+        if (isalpha(c) || isdigit(c))
+        {
+
+            df = identify_format(c);
+
+            assist = (df == prev) ? INVALID : assist;
+
+            prev = df;
+
+            assist = assist ? assist : tnode_constr(&new, df, c);
+
+            assist = assist ? assist : push(dest, new);
+
+            if (df == VAR && (vars->occupied == 1 || strchr(vars->word, c) == NULL))
+            {
+                string_append(vars, c);
+            }
+
+        }
+
+        else if (!isalpha(c) || !isdigit(c))
+        {
+
+            if (c == '>')
+            {
+                    
+                df = identify_op(b);
+
+                assist = (df > 10) ? assist : INVALID;
+                
+                if (!assist)
+                {
+                    prev = df;
+
+                    assist = assist ? assist : op_handle(dest, op_order, df, &is_bracket);
+
+                    b = 0;
+                }
+
+            }
+            else 
+            {
+
+                df = identify_op(c);
+
+                assist = (df > R_BRACKET && prev > R_BRACKET) ? INVALID : assist;
+
+                if (!assist && (df > 10)) 
+                {
+                    b = c;
+                }
+                else if (!assist)
+                {
+
+                    prev = df;
+
+                    assist = assist ? assist : op_handle(dest, op_order, df, &is_bracket);
+                }
+            }
+
+        }
+    }
+ 
+    if (!assist)
+    {
+        assist = (is_bracket || b) ? INVALID : assist;
+
+        if (!assist)
+        {
+            while (!is_stack_empty(op_order))
+            {
+                T_node *buff = pop(op_order);
+
+                push(dest, buff);
+            }
+        }
+    }
 
     stack_destr(&op_order);
 
@@ -747,11 +884,11 @@ EXIT_CODE op_handle(Stack *dest, Stack* src, DATAFORMAT df, int *is_bracket)
 
         }
 
+        (*is_bracket)--;
+
         buff = pop(src);
 
         tnode_destr(&buff);
-
-        (*is_bracket)--;
 
         return OK;
 
@@ -899,6 +1036,11 @@ int priority(DATAFORMAT df)
 EXIT_CODE tree_handle (Stack *src, String *vars)
 {
 
+    if (is_stack_empty(src))
+    {
+        return OK;
+    }
+
     BST *tree = NULL;
 
     BST_init(&tree, (vars->occupied - 1));
@@ -919,6 +1061,8 @@ EXIT_CODE tree_handle (Stack *src, String *vars)
     output_process(tree, vars->word);
 
     BST_destr(&tree);
+
+    return OK;
 
 }
 
@@ -944,11 +1088,16 @@ EXIT_CODE output_process (BST *src, char *vars)
 
         for (int t = src->vars - 1; t >= 0; t--)
         {
-            fprintf(output, "%d\t", i & (1 << t));
+            int buff = i & (1 << t) ? 1 : 0;
+            fprintf(output, "%d\t", buff);
         }
 
-        calc_tree(output, src->root, i, src->vars, vars);
+        fprintf(output, "%d\n", calc_tree(src->root, i, src->vars, vars));
     }
+
+    fclose(output);
+
+    return OK;
 
 }
 
@@ -967,8 +1116,6 @@ EXIT_CODE create_rand_file (FILE** dest)
 
     filename = NULL;
 
-    printf("%s\n\n", filename);
-
     *dest = buff;
 
     return OK;
@@ -979,14 +1126,14 @@ EXIT_CODE create_rand_file (FILE** dest)
 EXIT_CODE get_name (char** dest)
 {
 
-    char* filename = (char*)malloc(sizeof(char) * 64);
+    char* filename = (char*)malloc(sizeof(char) * 24);
 
     if (!filename)
     {
         return BAD_ALLOC;
     }
 
-    filename[63] = '\0';
+    filename[23] = '\0';
 
     char symbols[63] = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 
@@ -1007,7 +1154,7 @@ EXIT_CODE get_name (char** dest)
 
     *dest = filename;
 
-    srand(seed);
+    srand(time(NULL) * seed);
 
 }
 

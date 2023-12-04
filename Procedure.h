@@ -38,19 +38,19 @@ typedef enum
 
 	DISJ,
 
-	INVER,
-
-	IMPLIC, 
-
-	COIMPLIC,
-
-	EXCLUSIVE,
-    
-	EQUIVAL,
+	INVER, 
 
 	SHEFFER_STROKE,
 
 	WEBB_FUNCTION,
+
+    EQUIVAL,
+
+    IMPLIC,
+
+    COIMPLIC,
+
+	EXCLUSIVE,
 
 } DATAFORMAT;
 
@@ -173,6 +173,12 @@ EXIT_CODE add_leaf (T_node **root, T_node *to_add);
 EXIT_CODE tree_display (T_node *root, int tabs);
 
 
+int calc_tree (T_node *root, int combs, int mask_sup, char *vars);
+
+
+EXIT_CODE execute_op (DATAFORMAT func, int o1, int o2, int *res);
+
+
 EXIT_CODE BST_destr (BST **dest);
 
 
@@ -215,7 +221,17 @@ EXIT_CODE tree_handle (Stack *src, String *vars);
 
 
 
+EXIT_CODE output_process (BST *src, char *vars);
 
+
+
+EXIT_CODE create_rand_file (FILE** dest);
+
+
+EXIT_CODE get_name (char** dest);
+
+
+int get_rand(int* seed);
 
 
 
