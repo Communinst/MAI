@@ -92,6 +92,8 @@ typedef struct node
 
     int op; 
 
+    int data;
+
     struct node* next;
 
 } node;
@@ -112,9 +114,9 @@ typedef struct
 typedef struct queue_node
 {
     
-    int op;
-
     int data;
+
+    int op;
 
     struct queue_node* next;
 
@@ -163,7 +165,7 @@ EXIT_CODE vec_init (vec_file** dest);
 EXIT_CODE stack_init (stack** dest);
 
 
-EXIT_CODE push (stack* dest, int item);
+EXIT_CODE push (stack* dest, int op, int item);
 
 
 char pop (stack* src);
@@ -228,7 +230,7 @@ EXIT_CODE get_raw (string* dest, FILE* src, char* c);
 EXIT_CODE get_polish (string* dest, queue** q, char* src);
 
 
-EXIT_CODE polish_handle (string* dest, stack* ops, queue* calc, int* n, char c, int* is_bracket);
+EXIT_CODE polish_handle (string* dest, stack* ops, queue* calc, int* n, char c, int* is_bracket, EXIT_CODE *assist);
 
 
 int priority (char c);

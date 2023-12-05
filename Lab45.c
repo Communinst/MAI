@@ -13,16 +13,16 @@
 
 
 
-int main (int argc, char** argv)
+int main ()//int argc, char** argv)
 {
 
     srand(time(NULL));
 
-    /*int argc = 4;
+    int argc = 4;
     
     char* data[] = {"yes", "in1.txt", "in2.txt", "in3.txt"};
 
-    char** argv = data;*/
+    char** argv = data;
 
     switch (input_handle(argc, argv))
     {
@@ -450,7 +450,7 @@ EXIT_CODE stack_init (stack** dest)
 }
 
 
-EXIT_CODE push (stack* dest, int item)
+EXIT_CODE push (stack* dest, int op, int item)
 {
 
     node* new = (node*)malloc(sizeof(node));
@@ -461,6 +461,7 @@ EXIT_CODE push (stack* dest, int item)
     }
 
     new->op = item;
+    new->data = op;
     new->next = dest->head;
 
     dest->head = new;
@@ -480,6 +481,11 @@ char pop (stack* src)
     char res = temp->op;
 
     temp->op = 0;
+
+    temp->data = 0;
+
+    temp->next = NULL;
+
     free(temp);
 
     return res;
@@ -799,6 +805,10 @@ EXIT_CODE record_error (FILE** dest, expression* src, EXIT_CODE info)
             fprintf((*dest), "Order: %u\nInstance: %s\nError code: Mathematical uncertainty.\n\n", src->order, src->raw_expr);
             break;
 
+        case INVALID:
+            fprintf((*dest), "Order: %u\nInstance: %s\nError code: Invalid instance.\n\n", src->order, src->raw_expr);
+            break;
+
     }
 
     return OK;
@@ -863,7 +873,7 @@ EXIT_CODE get_name (char** dest)
 
     *dest = filename;
 
-    srand(time(NULL) * seed);
+    srand(seed);
 
 }
 
@@ -1001,7 +1011,7 @@ EXIT_CODE get_polish (string* dest, queue** q, char* src)
     while (*cr != '\0')
     {
 
-        assist = polish_handle(dest, ops, calc, &number, *cr, &is_brackets);
+        assist = polish_handle(dest, ops, calc, &number, *cr, &is_brackets, &assist);
 
         cr++;
 
@@ -1029,7 +1039,7 @@ EXIT_CODE get_polish (string* dest, queue** q, char* src)
 }
 
 
-EXIT_CODE polish_handle (string* dest, stack* ops, queue* calc, int* n, char c, int* is_bracket)
+EXIT_CODE polish_handle (string* dest, stack* ops, queue* calc, int* n, char c, int* is_bracket, EXIT_CODE *assist)
 {
 
     if (isdigit(c))
@@ -1045,16 +1055,19 @@ EXIT_CODE polish_handle (string* dest, stack* ops, queue* calc, int* n, char c, 
         
     }
 
+    else if (assist == COMMITTED)
+    {
+        enqueue(calc, 0, *n);
+    }
+
     else if (c == '(')
     {
         (*is_bracket)++;
 
-        push(ops, c);
+        push(ops, 1, c);
 
         return OK;
     }
-
-    enqueue(calc, 0, *n);
 
     *n = 0;
 
@@ -1085,13 +1098,13 @@ EXIT_CODE polish_handle (string* dest, stack* ops, queue* calc, int* n, char c, 
             string_append(dest, pop(ops));
         }
 
-        push(ops, c);
+        push(ops, 1, c);
 
     }
 
     else
     {
-        push(ops, c);
+        push(ops, 1, c);
     }
 
     return OK;
@@ -1162,12 +1175,12 @@ EXIT_CODE calc_polish (int* res, queue* src)
                 
             }
 
-            push(buff, temp);
+            push(buff, 1, temp);
         }
 
         else 
         {
-            push(buff, cr->data);
+            push(buff, 0, cr->data);
         }
 
     }
@@ -1183,6 +1196,10 @@ EXIT_CODE calc_polish (int* res, queue* src)
 
 EXIT_CODE execute_op (int* res, stack* src, char c)
 {
+    if (is_stack_empty(src) || !src->head->next || src->head->op || src->head->next->op)
+    {
+        return INVALID;
+    }
 
     int val2 = pop(src);
 
@@ -1243,5 +1260,4 @@ EXIT_CODE execute_op (int* res, stack* src, char c)
 
 
 }
-
 
