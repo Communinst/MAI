@@ -758,7 +758,10 @@ EXIT_CODE data_handle (FILE** src, file_stuff* fsd)
 
         }
 
-        fs_append(fsd, expr);
+        else 
+        {
+            fs_append(fsd, expr);
+        }
 
         order++;
 
@@ -925,7 +928,9 @@ EXIT_CODE get_expr(expression** dest, unsigned int order, FILE* src, char* c)
     int value = 0;
 
 
-    assist = calc_polish(&value, calc);
+    assist = (calc->size <= 3) ? INVALID : assist;
+
+    assist = assist ? assist : calc_polish(&value, calc);
 
     if (assist)
     {
@@ -992,6 +997,7 @@ EXIT_CODE get_polish (string* dest, queue** q, char* src)
 
     EXIT_CODE assist = OK;
 
+
     stack* ops = NULL;
 
     stack_init(&ops);
@@ -1006,6 +1012,7 @@ EXIT_CODE get_polish (string* dest, queue** q, char* src)
 
     int number = 0;
 
+
     char* cr = src;
 
     while (*cr != '\0')
@@ -1017,24 +1024,30 @@ EXIT_CODE get_polish (string* dest, queue** q, char* src)
 
     }
 
-    if (assist)
+    assist = is_brackets ? INVALID : assist;
+
+    if (assist == COMMITTED)
     {
         enqueue(calc, 0, number);
+        assist = OK;
     }
 
-    while (!is_stack_empty(ops))
+    while (!is_stack_empty(ops) && !assist)
     {
-        int buff = pop(ops);
 
-        string_append(dest, buff);
+        char bff = pop(ops);
 
-        enqueue(calc, 1, buff);
+        string_append(dest, bff);
+
+        enqueue(calc, 1, bff);
 
     }
+
+    stack_destr(&ops);
 
     *q = calc;
 
-    free(ops);
+    return assist;
 
 }
 
@@ -1042,70 +1055,80 @@ EXIT_CODE get_polish (string* dest, queue** q, char* src)
 EXIT_CODE polish_handle (string* dest, stack* ops, queue* calc, int* n, char c, int* is_bracket, EXIT_CODE *assist)
 {
 
+    
+
     if (isdigit(c))
     {
 
         string_append(dest, c);
 
         *n *= 10;
-
-        *n += (c - '0');
+        *n += c - '0';
 
         return COMMITTED;
-        
+
     }
 
-    else if (assist == COMMITTED)
+    if (*assist == COMMITTED)
     {
         enqueue(calc, 0, *n);
+        *n = 0;
     }
 
-    else if (c == '(')
+    if (c == '(')
     {
+
         (*is_bracket)++;
 
         push(ops, 1, c);
 
-        return OK;
     }
 
-    *n = 0;
-
-    if (c == ')')
+    else if (c == ')')
     {
 
-        while (ops->head->op != '(')
+        if (!is_stack_empty(ops))
         {
+            while (ops->head->op != '(')
+            {
+                char bff = pop(ops);
 
-            int buff = pop(ops);
+                string_append(dest, bff);
 
-            string_append(dest, buff);
+                enqueue(calc, 1, bff);
+            }
 
-            enqueue(calc, 1, buff);
+            pop(ops);
+
+            (*is_bracket)--;
 
         }
 
-        pop(ops);
-        (*is_bracket)--;
-
     }
 
-    else if (!(*is_bracket) && !isdigit(c) && !is_stack_empty(ops))
+    else if (!(*is_bracket))
     {
 
         while (!is_stack_empty(ops) && priority(ops->head->op) >= priority(c))
         {
-            string_append(dest, pop(ops));
-        }
 
+            char bff = pop(ops);
+
+            string_append(dest, bff);
+
+            enqueue(calc, 1, bff);
+
+        }
+        
         push(ops, 1, c);
 
     }
 
-    else
+    else 
     {
         push(ops, 1, c);
     }
+
 
     return OK;
 
@@ -1175,7 +1198,7 @@ EXIT_CODE calc_polish (int* res, queue* src)
                 
             }
 
-            push(buff, 1, temp);
+            push(buff, 0, temp);
         }
 
         else 
@@ -1196,7 +1219,7 @@ EXIT_CODE calc_polish (int* res, queue* src)
 
 EXIT_CODE execute_op (int* res, stack* src, char c)
 {
-    if (is_stack_empty(src) || !src->head->next || src->head->op || src->head->next->op)
+    if (is_stack_empty(src) || !src->head->next || src->head->data || src->head->next->data)
     {
         return INVALID;
     }
@@ -1253,7 +1276,7 @@ EXIT_CODE execute_op (int* res, stack* src, char c)
             break;
 
         default:
-            break;
+            return INVALID;
     }
 
     return OK;
