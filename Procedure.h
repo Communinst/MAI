@@ -11,7 +11,10 @@ typedef enum
 } EXIT_CODE;
 
 
-EXIT_CODE string_rev (char** dest, char* src);
+EXIT_CODE string_rev (char** dest, char* src, char key);
+
+
+int rid_of_zeros (char *src);
 
 
 EXIT_CODE last_residue (int value, char** dest);

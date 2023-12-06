@@ -8,29 +8,80 @@
 #include "Procedure.h"
 
 
-EXIT_CODE string_rev (char** dest, char* src)
+EXIT_CODE string_rev (char** dest, char* src, char key)
 {
 
-    char* buff = (char*)malloc(sizeof(char) * strlen(src) + 1);
+    char *buff = (char*)malloc(sizeof(char));
 
-    for (int i = 0; i < strlen(src); i++)
+    if (!buff)
     {
-
-        if (!isdigit(src[strlen(src) - i - 1]))
-        {
-            return INVALID;
-        }
-
-        buff[i] = src[strlen(src) - i - 1];
+        return BAD_ALLOC;
     }
 
-    buff[strlen(src)] = '\0';
+    int allocated = 0;
+    
+    int stored = 0;
+    buff[stored] = '\0';
+
+    int end = rid_of_zeros(src);
+    int length = strlen(src) - 1;
+
+    if (key == 'a')
+    {
+        end = 0;
+    }
+
+    while (length >= end)
+    {
+
+        if (allocated <= strlen(buff) + 1)
+        {
+
+            allocated += 1;
+            allocated *= 2;
+
+            char *temp = (char*)realloc(buff, sizeof(char) * allocated);
+
+            if (!temp)
+            {
+                return BAD_ALLOC;
+            }
+
+            buff = temp;
+
+        }
+
+        buff[stored] = src[length];
+        stored++;
+        buff[stored] = '\0';
+
+        length--;
+
+    }
 
     *dest = buff;
 
     return OK;
 
 }
+
+
+int rid_of_zeros (char *src)
+{
+
+    char *cr = src;
+    int end = 0;
+
+    while (*cr > 0 && *cr == '0')
+    {   
+        end++;
+        cr++;
+    }
+
+    return end;
+
+}
+
 
 EXIT_CODE last_residue (int value, char** dest)
 {
@@ -55,6 +106,7 @@ EXIT_CODE last_residue (int value, char** dest)
 
 }
 
+
 EXIT_CODE sum_up (char** sum, char* adden, int base)
 {
 
@@ -76,15 +128,19 @@ EXIT_CODE sum_up (char** sum, char* adden, int base)
                 return BAD_ALLOC;
             }
 
-            temp[amount] = '0';
+            temp[amount] = adden[amount];
             temp[amount + 1] = '\0';
 
             buff = temp;
 
         }
-    
-        buff[amount] += (((*add_char - '0') + residue) % base);
-        residue = (((buff[amount] - '0') + (*add_char - '0') + residue) / base);
+
+        else
+        {
+            residue = (((buff[amount] - '0') + (*add_char - '0') + residue) / base);
+
+            buff[amount] += (((*add_char - '0') + residue) % base);
+        }
 
         amount++;
 
@@ -100,11 +156,13 @@ EXIT_CODE sum_up (char** sum, char* adden, int base)
     if (residue)
     {
         last_residue(residue, &buff);
+        residue = 0;
     }
 
     *sum = buff;
 
 }
+
 
 EXIT_CODE long_str_sum (char** result, int base, int amount, ...)
 {
@@ -114,7 +172,7 @@ EXIT_CODE long_str_sum (char** result, int base, int amount, ...)
     va_start(addings, amount);
 
     char* buff_rev;
-    if (string_rev(&buff_rev, va_arg(addings, char*)) == INVALID)
+    if (string_rev(&buff_rev, va_arg(addings, char*), 'c') == INVALID)
     {
         return INVALID;
     }
@@ -126,7 +184,7 @@ EXIT_CODE long_str_sum (char** result, int base, int amount, ...)
 
         char* adding_rev;
 
-        if (string_rev(&adding_rev, adding) == INVALID)
+        if (string_rev(&adding_rev, adding, 'c') == INVALID)
         {
             return INVALID;
         }
@@ -139,7 +197,7 @@ EXIT_CODE long_str_sum (char** result, int base, int amount, ...)
 
     va_end(addings);
 
-    string_rev(result, buff_rev);
+    string_rev(result, buff_rev, 'a');
 
 }
 
@@ -149,7 +207,7 @@ int main (int argc, char **argv)
 
     char* result;
 
-    if (long_str_sum(&result, 4, 3, "211", "1", "40110") != OK)
+    if (long_str_sum(&result, 8, 3, "00000", "10", "7100") != OK)
     {
         printf("Error!\n");
         return 1;
