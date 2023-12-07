@@ -2,6 +2,9 @@
 #ifndef PROCEDURE_H
 #define PROCEDURE_H
 
+
+
+
 typedef enum 
 {
 
@@ -12,6 +15,7 @@ typedef enum
     UNKNOWN_COMMAND,
 
 } EXIT_CODE;
+
 
 
 
@@ -78,7 +82,7 @@ EXIT_CODE get_node (Employee** main_node, int* current_pos, FILE* in);
 EXIT_CODE get_str (FILE* in, int* current_pos, char** dest);
 
 
-/*---------------------------------Sort-subroot-------------------------------------------*/
+//-------Sort-subroot------//
 
 EXIT_CODE sort_base (Employee** data_base, int size, char flag);
 
@@ -88,9 +92,7 @@ int ascend_comp (const void* v1, const void* v2);
 
 int descend_comp (const void* v1, const void* v2);
 
-/*----------------------------------------------------------------------------------------*/
-
-
+//-------------------------//
 
 
 /*---------------------------------Drop-process-handling----------------------------------*/

@@ -181,7 +181,13 @@ EXIT_CODE get_base (int argc, char** argv, Employee*** main_base, int* size)
         return BAD_ALLOC;
     }
 
-    Employee** data_base = (Employee**)malloc(sizeof(Employee*) * 0);
+    Employee** data_base = (Employee**)malloc(sizeof(Employee*));
+    
+    if (!data_base)
+    {
+        return BAD_ALLOC;
+    }
+
     int current_allocated = 0;
 
     int c = fgetc(in);
@@ -410,30 +416,27 @@ EXIT_CODE sort_base (Employee** data_base, int size, char flag)
 int ascend_comp (const void* v1, const void* v2)
 {
 
-    Employee* e1 = (Employee*) v1;
-    Employee* e2 = (Employee*) v2;
+    Employee const** e1 = (Employee const**) v1;
+    Employee const** e2 = (Employee const**) v2;
 
-    if (e1->fee != e2->fee)
+    if ((*e1)->fee != (*e2)->fee)
     {
-        return e1->fee - e2->fee;
+        return (*e1)->fee - (*e2)->fee;
     }
 
-    else if (strcmp(e1->surname, e2->surname))
+    else if (strcmp((*e1)->surname, (*e2)->surname))
     {
-        return strcmp(e1->surname, e2->surname);
+        return strcmp((*e1)->surname, (*e2)->surname);
     }
 
-    else if (strcmp(e1->name, e2->name))
+    else if (strcmp((*e1)->name, (*e2)->name))
     {
-        return strcmp(e1->name,e2->name);
+        return strcmp((*e1)->name, (*e2)->name);
     }
     else 
     {
-        return e1->id - e2->id;
+        return (*e1)->id - (*e2)->id;
     }
-
-    free(e1);
-    free(e2);
 
 }
 
@@ -475,6 +478,8 @@ EXIT_CODE write_down_data (Employee*** data_base, int size, char* out_name)
     }
 
     free(*data_base);
+
+    fclose(output);
 
     return OK;
 
