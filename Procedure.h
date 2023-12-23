@@ -95,7 +95,7 @@ int comp (const void *v1, const void *v2);
 EXIT_CODE combination_control (double EPS, double c1, double c2, double c3, int *unique, vector_double *res);
 
 
-EXIT_CODE discriminant_handle (double EPS, int comb_amount, vector_double *coefs);
+EXIT_CODE coefs_handle (double EPS, int comb_amount, vector_double *coefs);
 
 
 EXIT_CODE get_comb(int variety, vector_double *coefs, double *v1, double *v2, double *v3, int *it, int *r);
@@ -105,6 +105,15 @@ EXIT_CODE all_unique(vector_double *coefs, double *v1, double *v2, double *v3, i
 
 
 EXIT_CODE only_unique(vector_double *coefs, double *v1, double *v2, double *v3);
+
+
+solution_type solve (double EPS, double x1, double x2, double x3, double *sol1, double *sol2);
+
+
+double get_discriminant (double x1, double x2, double x3);
+
+
+EXIT_CODE output_handle (solution_type type, double x1, double x2, double x3, double sol1, double sol2);
 
 
 

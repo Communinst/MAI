@@ -14,7 +14,7 @@ int main ()//int argc, char **argv)
 
     int argc = 6;
 
-    char *data[] = {"gay", "-q", "0.1", "7", "4", "3"};
+    char *data[] = {"gay", "-q", "0.1", "7", "6.9", "6.80000001"};
 
     char **argv = data;
 
@@ -276,7 +276,7 @@ EXIT_CODE permutations_of_three (double EPS, double coef1, double coef2, double 
 
     combination_control(EPS, coef1, coef2, coef3, &unique, coefs);
 
-    discriminant_handle(EPS, unique, coefs);
+    coefs_handle(EPS, unique, coefs);
 
     vector_destr(&coefs);
 
@@ -303,7 +303,6 @@ EXIT_CODE combination_control (double EPS, double c1, double c2, double c3, int 
     {
         *unique = 2;
         vector_append(res, c2);
-        vector_append(res, c2);
     }
 
     if (fabs(c2 - c3) < EPS)
@@ -315,8 +314,8 @@ EXIT_CODE combination_control (double EPS, double c1, double c2, double c3, int 
         else
         {
             vector_append(res, c2);
-            vector_append(res, c2);
             vector_append(res, c1);
+            vector_append(res, c2);
         }
     }
 
@@ -342,38 +341,47 @@ EXIT_CODE combination_control (double EPS, double c1, double c2, double c3, int 
 }
 
 
-EXIT_CODE discriminant_handle (double EPS, int comb_amount, vector_double *coefs)
+EXIT_CODE coefs_handle (double EPS, int comb_amount, vector_double *coefs)
 {
-
-    int t_amount = 0;
-
-    t_amount = t_amount | comb_amount;
-
-    if (comb_amount > 1)
-    {
-        t_amount | 1;
-    }
-
-    printf("moron");
-
-    if (comb_amount > 2)
-    {
-        t_amount << 1;
-    }
 
     int iterator = 0;
     int reverse = 0;
+
+    int t_amount = 0;
+
+    switch (comb_amount)
+    {
+        case 1:
+            t_amount = 1;
+            break;
+        
+        case 2:
+            t_amount = 3;
+            break;
+
+        case 3:
+            t_amount = 6;
+            break;
+    }
 
     while (t_amount--)
     {
 
         double x1, x2, x3;
+        double sol1 = 0;
+        double sol2 = 0;
+
+        solution_type res = NONE;
 
         get_comb(comb_amount, coefs, &x1, &x2, &x3, &iterator, &reverse);
 
-        printf("%llf %llf %llf\n", x1, x2, x3);
+        res = solve(EPS, x1, x2, x3, &sol1, &sol2);
+
+        output_handle(res, x1, x2, x3, sol1, sol2);
 
     }
+
+    return OK;
 
 }
 
@@ -400,23 +408,22 @@ EXIT_CODE all_unique(vector_double *coefs, double *v1, double *v2, double *v3, i
 
     if (!(*r))
     {
-        *v1 = coefs->elems[*it];
+        *v1 = coefs->elems[*it % 3];
         *v2 = coefs->elems[(*it + 1) % 3];
         *v3 = coefs->elems[(*it + 2) % 3];
+        *r = 1;
     }
 
     else if (*r)
     {
 
         *v1 = coefs->elems[*it % 3];
-        *v2 = coefs->elems[(*it - 1) % 3];
-        *v3 = coefs->elems[(*it - 2) % 3];
+        *v2 = coefs->elems[(*it + 2) % 3];
+        *v3 = coefs->elems[(*it + 1) % 3];
+        *r = 0;
+        (*it)++;
 
     }
-
-    *r = (*it == 2) ? 1 : 0;
-
-    *it++;
 
     return OK;
 
@@ -431,6 +438,62 @@ EXIT_CODE only_unique(vector_double *coefs, double *v1, double *v2, double *v3)
     *v3 = *(coefs->elems);
 
 }
+
+
+solution_type solve (double EPS, double x1, double x2, double x3, double *sol1, double *sol2)
+{
+
+    double discriminant = get_discriminant(x1, x2, x3);
+
+    if (fabs(discriminant - 0) < EPS)
+    {
+        *sol1 = (-1.0) * x2 / 2 * x1;
+        return SINGLE;
+    }
+
+    if (discriminant < 0)
+    {
+        return NONE;
+    }
+
+    *sol1 = ((-1.0) * x2 + sqrt(discriminant)) / 2.0 / x1;
+
+    *sol2 = ((-1.0) * x2 - sqrt(discriminant)) / 2.0 / x1;
+
+    return (fabs(sol1 - sol2) < EPS) ? SINGLE : DUAL;
+
+}
+
+
+double get_discriminant (double x1, double x2, double x3)
+{
+    return (x2 * x2 - (4 * x1 * x3));
+}
+
+
+EXIT_CODE output_handle (solution_type type, double x1, double x2, double x3, double sol1, double sol2)
+{
+
+    switch (type)
+    {
+        case DUAL:
+            printf("(%llf)(x^2) + (%llf)x + (%llf)\n", x1, x2, x3);
+            printf("Solution:\n1st: %llf\n2nd: %llf\n", sol1, sol2);
+            break;
+
+        case SINGLE:
+            printf("(%llf)(x^2) + (%llf)x + (%llf)\n", x1, x2, x3);
+            printf("Solution:\n1st: %llf\n", sol1);
+            break;
+
+        case NONE:
+            printf("(%llf)(x^2) + (%llf)x + (%llf)\n", x1, x2, x3);
+            printf("Solution: NONE\n");
+            break;
+    }
+
+}
+
 
 
 
