@@ -2,89 +2,131 @@
 #define PROCEDURES_H
 
 
-typedef enum {
+typedef long long int ll;
+
+
+typedef enum
+{
+
     OK = 0,
-    INVALID,
-    TOO_MANY,
-    TOO_FEW,
-    DIVISIBLE,
-    NON_DIVISIBLE,
-    EXIST,
-    DONT_EXIST,
-    THE_ONLY_UNIQUE,
-    FIRST_SECOND,
-    FIRST_THIRD,
-    SECOND_THIRD,
-    ALL_UNIQUE,
+
+    INVALID_ARGC,
+
+    INVALID_WORD,
+
     BAD_ALLOC,
-    LESS,
-    E_NOTATION,
+
+    UNEXPECTED_ZERO,
+
+    MULTIPLE,
+
+    NOT_MULTIPLE,
+
+    TRIANGLE, 
+
+    NOT_TRIANGLE,
+
 } EXIT_CODE;
 
 
-typedef struct 
+
+
+typedef enum
 {
-    double solution1;
-    double solution2;
-    EXIT_CODE exist;
-    double coefs[3];
-} result;
+
+    SINGLE,
+
+    DUAL,
+
+    NONE
+
+} solution_type;
 
 
-typedef struct vectorInt
+
+
+typedef struct
 {
-    int num_of_el;
-    result* el;
-    int mem_capacity;
-} vectorInt;
 
-void createVector(vectorInt* v);
+    size_t allocated;
+    size_t occupied;
 
-bool ifEmptyVector(vectorInt* v);
+    double *elems;
 
-EXIT_CODE adder(double EPS, double a, double b, double c, vectorInt *v);
-
-EXIT_CODE vectorPrint(vectorInt *v);
-
-void terminate(vectorInt* v);
+} vector_double;
 
 
-EXIT_CODE string_valid_pos_double(int argc, char* argv[]);
 
-EXIT_CODE string_valid_neg_double(int argc, char* argv[]);
-
-EXIT_CODE string_valid_int (int argc, char* argv[]);
-
-EXIT_CODE e_notation (char* argv);
-
-EXIT_CODE triangleExistence(double EPS, double side1, double side2, double side3);
-
-EXIT_CODE equalityOfDoubles(double EPS, double coef1, double coef2, double coef3);
+void response (EXIT_CODE res);
 
 
-EXIT_CODE combinationControl(double EPS, double coef1, double coef2, double coef3, vectorInt *v);
+void usage();
 
-void equationsSolutions(double a, double b, double dis, double *res1, double *res2);
 
-EXIT_CODE countDiscriminant(double a, double b, double c, double *dis);
 
-EXIT_CODE checkDiscriminant(double *dis);
+EXIT_CODE input_handle (int argc, char **argv);
 
-/*---------------------------------------Basis--------------------------------------------*/
-EXIT_CODE inputCheck(int argc, char* argv[], vectorInt *solutions);
 
-/*-----------------------------------qKeyTreatment----------------------------------------*/
-EXIT_CODE qtArgcCheck(int argc, char *argv[]);
 
-EXIT_CODE qFunc(int argc, char* argv[], vectorInt *solutions);
+EXIT_CODE key_handle (int argc, char **argv);
 
-/*-----------------------------------mKeyTreatment----------------------------------------*/
-EXIT_CODE mArgcCheck(int argc, char *argv[]);
 
-EXIT_CODE mFunc(int argc, char* argv[]);
 
-/*-----------------------------------pKeyTreatment----------------------------------------*/
-EXIT_CODE tFunc(int argc, char* argv[]);
+EXIT_CODE str_to_lint (char *str, ll *dest);
+
+
+EXIT_CODE str_to_double (char *str, double *dest);
+
+
+
+
+EXIT_CODE q_handle (int argc, char **argv);
+
+
+EXIT_CODE q_input_conversion (char **argv);
+
+
+EXIT_CODE permutations_of_three (double EPS, double coef1, double coef2, double coef3);
+
+
+int comp (const void *v1, const void *v2);
+
+
+EXIT_CODE combination_control (double EPS, double c1, double c2, double c3, int *unique, vector_double *res);
+
+
+EXIT_CODE discriminant_handle (double EPS, int comb_amount, vector_double *coefs);
+
+
+EXIT_CODE get_comb(int variety, vector_double *coefs, double *v1, double *v2, double *v3, int *it, int *r);
+
+
+EXIT_CODE all_unique(vector_double *coefs, double *v1, double *v2, double *v3, int *it, int *r);
+
+
+EXIT_CODE only_unique(vector_double *coefs, double *v1, double *v2, double *v3);
+
+
+
+EXIT_CODE m_handle (int argc, char **argv);
+
+
+EXIT_CODE is_multiple (ll num1, ll num2);
+
+
+
+
+EXIT_CODE t_handle (int argc, char **argv);
+
+
+EXIT_CODE t_input_conversion (char **argv);
+
+
+EXIT_CODE is_triangle (double EPS, double s1, double s2, double s3);
+
+
+
+
 
 
 #endif 

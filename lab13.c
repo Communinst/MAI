@@ -3,12 +3,149 @@
 #include <stdbool.h>
 #include <string.h>
 #include <math.h>
+#include <errno.h>
+
 #include "Procedure.h"
 
 
 
+int main ()//int argc, char **argv)
+{
 
-/*---------------------------------------Basic--------------------------------------------*/
+    int argc = 6;
+
+    char *data[] = {"gay", "-q", "0.1", "7", "4", "3"};
+
+    char **argv = data;
+
+    response(input_handle(argc, argv));
+
+    return 0;
+
+}
+
+
+
+
+EXIT_CODE vector_init (vector_double **dest)
+{
+
+    vector_double *buff = (vector_double*)malloc(sizeof(vector_double));
+
+    if (!buff)
+    {
+        return BAD_ALLOC;
+    }
+
+    buff->allocated = 0;
+    buff->occupied = 0;
+    buff->elems = NULL;
+
+    *dest = buff;
+
+    return OK;
+
+}
+
+
+EXIT_CODE vector_append (vector_double *dest, double to_add)
+{
+
+    if (dest->allocated == dest->occupied)
+    {
+
+        dest->allocated += 1;
+        dest->allocated *= 2;
+
+        double *temp = (double*)realloc(dest->elems, sizeof(double) * dest->allocated);
+
+        if (!temp)
+        {
+            return BAD_ALLOC;
+        }
+
+        dest->elems = temp;
+
+    }
+
+    *(dest->elems + dest->occupied) = to_add;
+
+    (dest->occupied)++;
+
+    return OK;
+
+}
+
+
+EXIT_CODE vector_destr (vector_double **dest)
+{
+
+    (*dest)->allocated = 0;
+    (*dest)->occupied = 0;
+
+    free((*dest)->elems);
+    (*dest)->elems = NULL;
+
+    free((*dest));
+    (*dest) = NULL;
+
+    return OK;
+
+}
+
+
+
+
+void response (EXIT_CODE res)
+{
+
+    switch (res)
+    {
+
+        case OK:
+            printf("Success!\n");
+            break;
+        
+        case INVALID_ARGC:
+            printf("Invalid amount of arguments!\n");
+            usage();
+            break;
+
+        case INVALID_WORD:
+            printf("Unexpected lexeme!\n");
+            usage();
+            break;
+
+        case BAD_ALLOC:
+            printf("Memory fault!\n");
+            break;
+            
+        case UNEXPECTED_ZERO:
+            printf("Zero's invalid in current request!\n");
+            break;
+
+        case MULTIPLE:
+            printf("First value is a multiple of the second one!\n");
+            break;
+
+        case NOT_MULTIPLE:
+            printf("First value isn't a multiple of the second one!\n");
+            break;
+
+        case TRIANGLE:
+            printf("That sided triangle does exist!\n");
+            break;
+            
+        case NOT_TRIANGLE:
+            printf("That sided triangle doesn't exist!\n");
+            break;
+
+        default:
+            break;
+    }
+
+}
+
 
 void usage() 
 {
@@ -19,446 +156,372 @@ void usage()
     printf("\n   t - checks if there is a triangle with the entered sides. Input:\n\t\t\t t EPS side1 side2 side3\n\n");  
 }
 
-void createVector(vectorInt* v)
-{
-    v->num_of_el = 0;
-    v->el = NULL;
-    v->mem_capacity = 0;
-}
 
-bool ifEmptyVector(vectorInt* v) 
-{
-    return v->num_of_el; 
-}
 
-EXIT_CODE adder(double EPS, double a, double b, double c, vectorInt *v)
+EXIT_CODE input_handle (int argc, char **argv)
 {
-    if (v->mem_capacity == v->num_of_el)
+
+    if (argc < 2)
     {
-        v->mem_capacity *= 2;
-        result *temp = (result*)realloc(v->el, sizeof(result) * v->mem_capacity);
+        return INVALID_ARGC;
+    }
 
-        if (!temp)
-        {
-            return BAD_ALLOC;
-        }
+    return key_handle(argc, argv);  
+
+}
+
+
+
+EXIT_CODE key_handle (int argc, char **argv)
+{
+
+    char *ch = *(argv + 1);
+
+    if ((*ch != '-' && *ch != '/') || strlen(*(argv + 1)) != 2)
+    {
+        return INVALID_WORD;
+    }
+
+    ch++;
+
+    switch (*ch)
+    {
+        case 'q':
+            return q_handle(argc - 2, (argv + 2));
+
+        case 'm':
+            return m_handle(argc - 2, (argv + 2));
+
+        case 't':
+            return t_handle(argc - 2, (argv + 2));
         
-        v->el = temp;
+        default:
+            return INVALID_WORD;
     }
-    double discriminant = 0;
-    v->el[v->num_of_el].coefs[0] = a;
-    v->el[v->num_of_el].coefs[1] = b;
-    v->el[v->num_of_el].coefs[2] = c;
-    if (countDiscriminant(a, b, c, &discriminant) == LESS) {
-        v->el[v->num_of_el].exist = DONT_EXIST;
-    }
-    else {
-        double res1 = 0;
-        double res2 = 0;
-        equationsSolutions(a, b, discriminant, &res1, &res2);
-        //printf("%llf")
-        if (fabs(res1 - res2) <= EPS) {
-            v->el[v->num_of_el].exist = THE_ONLY_UNIQUE;
-            v->el[v->num_of_el].solution1 = res1;
-            v->el[v->num_of_el].solution2 = res2;
-        }
-        else {
-            printf("%llf -> %llf\n", res1, res2);
-            v->el[v->num_of_el].exist = EXIST;
-            v->el[v->num_of_el].solution1 = res1;
-            v->el[v->num_of_el].solution2 = res2;
-        }
-    }
-    v->num_of_el++;
-    return OK;
+
 }
 
-EXIT_CODE vectorPrint(vectorInt *v) 
+
+
+EXIT_CODE str_to_lint (char *str, ll *dest)
 {
+
+    char *end_ptr;
+
+    *dest = strtol(str, &end_ptr, 10);
+
+    return (end_ptr == str + strlen(str)) ? OK : INVALID_WORD;
+
+}
+
+
+EXIT_CODE str_to_double (char *str, double *dest)
+{
+
+    errno = 0;
+
+    char *end_ptr;
+
+    *dest = strtod(str, &end_ptr);
+
+    return (end_ptr == str + strlen(str) && !errno) ? OK : INVALID_WORD;
+
+}
+
+
+
+EXIT_CODE q_handle (int argc, char **argv)
+{
+
+    EXIT_CODE sup = OK;
+
+    sup = (argc != 4) ? INVALID_ARGC : sup;
+
+    return sup ? sup : q_input_conversion(argv);
+
+}
+
+
+EXIT_CODE q_input_conversion (char **argv)
+{
+
+    double EPS = 0;
+    double coef1 = 0;
+    double coef2 = 0;
+    double coef3 = 0;
+
+    EXIT_CODE sup = OK;
+
+    sup = str_to_double(*(argv), &EPS);
+    sup = sup ? sup : str_to_double(*(argv + 1), &coef1);
+    sup = sup ? sup : str_to_double(*(argv + 2), &coef2);
+    sup = sup ? sup : str_to_double(*(argv + 3), &coef3);
+
+    return sup ? sup : permutations_of_three(EPS, coef1, coef2, coef3);
+
+}
+
+
+EXIT_CODE permutations_of_three (double EPS, double coef1, double coef2, double coef3)
+{
+
+    vector_double *coefs = NULL;
+    vector_init(&coefs);
+
+    double src_coefs[3] = {coef1, coef2, coef3};
+
+    qsort(src_coefs, 3, sizeof(double), comp);
+
+    int unique = 0;
+
+    combination_control(EPS, coef1, coef2, coef3, &unique, coefs);
+
+    discriminant_handle(EPS, unique, coefs);
+
+    vector_destr(&coefs);
+
+    return OK;
+
+}
+
+
+int comp (const void *v1, const void *v2)
+{
+
+    double *d1 = (double*)v1;
+    double *d2 = (double*)v2;
+
+    return (*d1 <= *d2) ? -1 : 1;
+
+}
+
+
+EXIT_CODE combination_control (double EPS, double c1, double c2, double c3, int *unique, vector_double *res)
+{
+
+    if (fabs(c1 - c2) < EPS)
+    {
+        *unique = 2;
+        vector_append(res, c2);
+        vector_append(res, c2);
+    }
+
+    if (fabs(c2 - c3) < EPS)
+    {
+        if (*unique == 2)
+        {
+            *unique = 1;
+        }
+        else
+        {
+            vector_append(res, c2);
+            vector_append(res, c2);
+            vector_append(res, c1);
+        }
+    }
+
+    else if (res->occupied)
+    {
+        vector_append(res, c3);
+        vector_append(res, c2);
+    }
+
+    else
+    {
+        *unique = 3;
+
+        vector_append(res, c1);
+
+        vector_append(res, c2);
+
+        vector_append(res, c3);
+    }
+
+
+
+}
+
+
+EXIT_CODE discriminant_handle (double EPS, int comb_amount, vector_double *coefs)
+{
+
+    int t_amount = 0;
+
+    t_amount = t_amount | comb_amount;
+
+    if (comb_amount > 1)
+    {
+        t_amount | 1;
+    }
+
+    printf("moron");
+
+    if (comb_amount > 2)
+    {
+        t_amount << 1;
+    }
+
     int iterator = 0;
-    while (iterator != v->num_of_el) 
+    int reverse = 0;
+
+    while (t_amount--)
     {
-        if (v->el[iterator].exist == DONT_EXIST) 
-        {
-            printf("\nThere're not any solutions for the following equation\n");
-            printf("\t%llfx^2 + (%llf)x + (%llf)\n", v->el[iterator].coefs[0], v->el[iterator].coefs[1], v->el[iterator].coefs[2]);
-        }
-        else if (v->el[iterator].exist == THE_ONLY_UNIQUE)
-        {
-            printf("\nThere's the only solution for the following equation\n");
-            printf("\t%llfx^2 + (%llf)x + (%llf)\n", v->el[iterator].coefs[0], v->el[iterator].coefs[1], v->el[iterator].coefs[2]);
-            printf("x1 = %llf\n", v->el[iterator].solution1);
-        }
-        else {
-            printf("\nThere're two solutions for the following equation\n");
-            printf("\t%llfx^2 + (%llf)x + (%llf)\n", v->el[iterator].coefs[0], v->el[iterator].coefs[1], v->el[iterator].coefs[2]);
-            printf("x1 = %llf\tx2 = %llf\n", v->el[iterator].solution1, v->el[iterator].solution2);
-        }
-        iterator++;
+
+        double x1, x2, x3;
+
+        get_comb(comb_amount, coefs, &x1, &x2, &x3, &iterator, &reverse);
+
+        printf("%llf %llf %llf\n", x1, x2, x3);
+
     }
-}
 
-void terminate(vectorInt* v) 
-{
-    v->mem_capacity = 0;
-    v->num_of_el = 0;
-    v->el = NULL;
-    free(v);
 }
 
 
-EXIT_CODE string_valid_pos_double (int argc, char* argv[]) 
+EXIT_CODE get_comb(int variety, vector_double *coefs, double *v1, double *v2, double *v3, int *it, int *r)
 {
-    int i = 2;
-    while (i < argc) 
+
+    switch (variety)
     {
-        if (*argv[2] == '-') {
-            return INVALID;
-        }
-        if (strstr(argv[i], "e")) {
-            if (e_notation(argv[i]) != OK) {
-                return INVALID;
-            }
-        }
-        else {
-            bool point = false;
-            
-            for (int step = 0; step < strlen(argv[i]); step++) 
-            {
-                
-                if (((argv[i][step] < '0' || argv[i][step] > '9') && argv[i][step] != '.') || ((argv[i][step] == '.') && (point))) 
-                {
-                    return INVALID;
-                }
-                
-                if (argv[i][step] == '.') 
-                {
-                    point = true;
-                }
-            
-            }
-        }
-        i++;
-    }
-    return OK;
-}
-
-EXIT_CODE string_valid_neg_double (int argc, char* argv[])
-{
-    int i = 2;
-    while (i < argc) 
-    {   
-        if (*argv[2] == '-') {
-            return INVALID;
-        }
-        if (strstr(argv[i], "e")) {
-            if (e_notation(argv[i]) != OK) {
-                return INVALID;
-            }
-        }
-        else {
-            bool point = false;
-            int check = 0;
-            if (argv[i][0] == '-') {
-                check++;
-            }
-            for (int step = check; step < strlen(argv[i]); step++) 
-            {
-                if (((argv[i][step] < '0' || argv[i][step] > '9') && argv[i][step] != '.') || ((argv[i][step] == '.') && (point))) 
-                {
-                    return INVALID;
-                }
-                
-                if (argv[i][step] == '.') 
-                {
-                    point = true;
-                }
-            
-            }
-        }
-        i++;
-    }
-    return OK;
-}
-
-EXIT_CODE string_valid_int (int argc, char* argv[]) {
-    int i = 2;
-    while (i < argc) {
-        bool minus = false;
-        for (int step = 0; step < strlen(argv[i]); step++) {
-            if (((argv[i][step] < '0' || argv[i][step] > '9') && argv[i][step] != '-') || (argv[i][step] == '-' && minus)) {
-                return INVALID;
-            }
-            if (argv[i][step] == '-')
-            {
-                minus = true;
-            }
-        }
-        i++;
-    }
-    return OK;
-}
-
-EXIT_CODE e_notation (char* argv) {
-    int i = 0;
-    if (argv[i] < '0' || argv[i] > '9') {
-        return INVALID;
-    }
-    bool e_flag = false;
-    bool minus_flag = false;
-    while((++i) != strlen(argv)) {
-        if (argv[i] == 'e' && !e_flag) {
-            e_flag = true;
-        }
-        else if (argv[i] == '-' && !minus_flag) {
-            minus_flag = true;
-        }
-        else if (argv[i] >= '0' && argv[i] <= '9') {
-            continue;
-        }
-        else {
-            return INVALID;
-        }
-    }
-    return OK;
-}
-
-EXIT_CODE triangleExistence (double EPS, double side1, double side2, double side3) {
-    if ((side1 + side2 - side3 > EPS) && (side1 + side3 - side2 > EPS) && (side2 + side3 - side1 > EPS)) {
-        return EXIST;
-    }
-    return DONT_EXIST;
-}
-
-EXIT_CODE equalityOfDoubles (double EPS, double coef1, double coef2, double coef3) {
-    if ((fabs(coef1 - coef2) <= EPS) && (fabs(coef1 - coef3) <= EPS) && (fabs(coef2 - coef3) <= EPS)) {
-        return THE_ONLY_UNIQUE;
-    }
-    printf("\n%llf -> %llf\n", coef1, coef2);
-    if (fabs(coef1 - coef2) <= EPS) {
-        return FIRST_SECOND;
-    }
-    if (fabs(coef1 - coef3) <= EPS) {
-        return FIRST_THIRD;
-    }
-    if (fabs(coef2 - coef3) <= EPS) {
-        return SECOND_THIRD;
-    }
-    return ALL_UNIQUE;
-}
-
-
-EXIT_CODE combinationControl (double EPS, double coef1, double coef2, double coef3, vectorInt *v) {
-    switch (equalityOfDoubles(EPS, coef1, coef2, coef3))
-    {
-        case ALL_UNIQUE:
-            double combination_arr[3] = {coef1, coef2, coef3};
-            for (int i = 0; i < 3; i++) {
-                if (adder(EPS, combination_arr[i], combination_arr[(i + 1) % 3], combination_arr[(i + 2) % 3], v) != OK) {
-                    return BAD_ALLOC;
-                }
-                if (adder(EPS, combination_arr[i], combination_arr[(i + 2) % 3], combination_arr[(i + 1) % 3], v) != OK) {
-                    return BAD_ALLOC;
-                }
-            }
-            return OK;
-        case FIRST_SECOND:
-            for (int i = 0; i < 3; i++) {
-                if (adder(EPS, combination_arr[i], combination_arr[(i + 1) % 3], combination_arr[(i + 2) % 3], v) != OK) {
-                    return BAD_ALLOC;
-                }
-            }
-            return OK;
-
-        case FIRST_THIRD:
-            for (int i = 0; i < 3; i++) {
-                if (adder(EPS, combination_arr[i], combination_arr[(i + 1) % 3], combination_arr[(i + 2) % 3], v) != OK) {
-                    return BAD_ALLOC;
-                }
-            }
-            return OK;
-
-        case SECOND_THIRD:
-            for (int i = 0; i < 3; i++) {
-                if (adder(EPS, combination_arr[i], combination_arr[(i + 1) % 3], combination_arr[(i + 2) % 3], v) != OK) {
-                    return BAD_ALLOC;
-                }
-            }
-            return OK;
-
-        case THE_ONLY_UNIQUE:
-            if (adder(EPS, coef1, coef2, coef3, v) != OK) {
-                return BAD_ALLOC;
-            }
-            return OK;
+        case 1:
+            only_unique(coefs, v1, v2, v3);
+            break;
 
         default:
-            return INVALID;
-        }
+            all_unique(coefs, v1, v2, v3, it, r);
+            break;
+    }
+
 }
 
-void equationsSolutions (double a, double b, double dis, double *res1, double *res2) {
-    *res1 = ((-1.0) * b * b + sqrt(dis)) / 2.0 / a;
-    *res2 = ((-1.0) * b * b - sqrt(dis)) / 2.0 / a;
-}
 
-EXIT_CODE countDiscriminant (double a, double b, double c, double *dis) {
-    *dis = b * b - 4.0 * a * c;
-    return checkDiscriminant(dis);
-}
-
-EXIT_CODE checkDiscriminant (double *dis) {
-    if (*dis < 0) {
-        return LESS;
-    }
-    return OK;
-}
-
-/*---------------------------------------Basis--------------------------------------------*/
-EXIT_CODE inputCheck (int argc, char* argv[], vectorInt *solutions) {
-    if ((*argv[1] != '/' && *argv[1] != '-') || (strlen(argv[1]) != 2)) {
-        return INVALID;
-    }
-    
-    if (argv[1][1] == 'q') {
-        return qFunc(argc, argv, solutions);
-    }
-    if (argv[1][1] == 'm') {
-        return mFunc(argc, argv);
-    }
-    if (argv[1][1] == 't') {
-        return tFunc(argc, argv);
-    }
-    
-}
-
-/*-----------------------------------qKeyTreatment----------------------------------------*/
-EXIT_CODE qArgcCheck (int argc, char *argv[]) {
-    if (argc > 6) {
-       return TOO_MANY;
-    }
-    if (argc < 6) {
-       return TOO_FEW;
-    }
-    if (string_valid_neg_double(argc, argv) != OK){
-        return INVALID;
-    }
-    return OK;
-}
-
-EXIT_CODE qFunc (int argc, char* argv[], vectorInt *solutions) 
+EXIT_CODE all_unique(vector_double *coefs, double *v1, double *v2, double *v3, int *it, int *r)
 {
 
-    if (qArgcCheck(argc, argv) != OK) 
+    if (!(*r))
     {
-        return (qArgcCheck(argc, argv));
+        *v1 = coefs->elems[*it];
+        *v2 = coefs->elems[(*it + 1) % 3];
+        *v3 = coefs->elems[(*it + 2) % 3];
     }
-    double EPS = strtod(argv[2], NULL);
-    double coef1 = strtod(argv[3], NULL);
-    double coef2 = strtod(argv[4], NULL);
-    double coef3 = strtod(argv[5], NULL);
 
+    else if (*r)
+    {
 
-    return combinationControl(EPS, coef1, coef2, coef3, solutions);
-    
-}
+        *v1 = coefs->elems[*it % 3];
+        *v2 = coefs->elems[(*it - 1) % 3];
+        *v3 = coefs->elems[(*it - 2) % 3];
 
-/*-----------------------------------mKeyTreatment----------------------------------------*/
-EXIT_CODE mArgcCheck (int argc, char *argv[]) {
-    if (argc > 4) {
-       return TOO_MANY;
     }
-    if (argc < 4) {
-       return TOO_FEW;
-    }
-    if (string_valid_int(argc, argv) != OK){
-        return INVALID;
-    }
+
+    *r = (*it == 2) ? 1 : 0;
+
+    *it++;
+
     return OK;
+
 }
 
-EXIT_CODE mFunc (int argc, char* argv[]) {
-    if (mArgcCheck(argc, argv) != OK) {
-        return mArgcCheck(argc, argv);
-    }
-    long int num1 = strtol(argv[2], NULL, 10);
-    long int num2 = strtol(argv[3], NULL, 10);
-    if (num1 % num2) {
-        return NON_DIVISIBLE;
-    }
-    return DIVISIBLE;
+
+EXIT_CODE only_unique(vector_double *coefs, double *v1, double *v2, double *v3)
+{
+
+    *v1 = *(coefs->elems);
+    *v2 = *(coefs->elems);
+    *v3 = *(coefs->elems);
+
 }
 
-/*-----------------------------------pKeyTreatment----------------------------------------*/
 
-EXIT_CODE tArgcCheck (int argc, char *argv[]) {
-    if (argc > 6) {
-       return TOO_MANY;
-    }
-    if (argc < 6) {
-       return TOO_FEW;
-    }
-    if (string_valid_pos_double(argc, argv) != OK){
-        return INVALID;
-    }
-    return OK;
-}
 
-EXIT_CODE tFunc (int argc, char* argv[]) {
-    if (tArgcCheck(argc, argv) != OK) {
-        return (tArgcCheck(argc, argv));
-    }
-    double EPS = strtod(argv[2], NULL);
-    double side1 = strtod(argv[3], NULL);
-    double side2 = strtod(argv[4], NULL);
-    double side3 = strtod(argv[5], NULL);
-    return triangleExistence(EPS, side1, side2, side3);   
-}
+EXIT_CODE m_handle (int argc, char **argv)
+{
 
-/*----------------------------------------------------------------------------------------*/
+    EXIT_CODE sup = OK;
 
-EXIT_CODE main (int argc, char *argv[]) {
-    if (argc < 4) {
-        usage();
-        return TOO_FEW;
-    }
-    vectorInt solutions;
-    createVector(&solutions);
+    sup = (argc != 2) ? INVALID_ARGC : sup;
 
-    switch (inputCheck(argc, argv, &solutions)) {
-        case TOO_MANY:
-            printf("Enter the less amount of arguments, please!");
-            break;
-        case TOO_FEW:
-            printf("Enter more amount of arguments, please!");
-            break;
-        case INVALID:
-            printf("You violated the input rules!");
-            usage();
-            break;
-        case DIVISIBLE:
-            printf("The first entered value divisible by the second one!\n");
-            break;
-        case NON_DIVISIBLE:
-            printf("It seems, the first entered value is NOT divisible by the second one!\n");
-            break;
-        case EXIST:
-            printf("These sides triangle can exist!\n");
-            break;
-        case DONT_EXIST:
-            printf("It seems, these sides triangle can NOT exist!\n");
-            break;
-        case BAD_ALLOC:
-            printf("Memory handling error!1!");
-            break;
-        case OK:
+    ll num1 = 0;
+    ll num2 = 0;
 
-            printf("\n%d\n", solutions.num_of_el);
-            if (ifEmptyVector(&solutions)) {
-                vectorPrint(&solutions);
-            }
-            break;
-    }
-    terminate(&solutions);
+    sup = sup ? sup : str_to_lint(*(argv), &num1);
+    sup = sup ? sup : str_to_lint(*(argv + 1), &num2);
     
+    return sup ? sup : is_multiple(num1, num2); 
+
 }
+
+
+EXIT_CODE is_multiple (ll num1, ll num2)
+{
+
+    if (num1 % num2)
+    {   
+        return NOT_MULTIPLE;
+    }
+    return MULTIPLE;
+
+}
+
+
+
+
+EXIT_CODE t_handle (int argc, char **argv)
+{
+
+    EXIT_CODE sup = OK;
+
+    sup = (argc != 4) ? INVALID_ARGC : sup;
+
+    return sup ? sup : t_input_conversion(argv);
+
+}
+
+
+EXIT_CODE t_input_conversion (char **argv)
+{
+
+    double EPS = 0;
+    double side1 = 0;
+    double side2 = 0;
+    double side3 = 0;
+
+    EXIT_CODE sup = OK;
+
+    sup = str_to_double(*(argv), &EPS);
+    sup = sup ? sup : str_to_double(*(argv + 1), &side1);
+    sup = sup ? sup : str_to_double(*(argv + 2), &side2);
+    sup = sup ? sup : str_to_double(*(argv + 3), &side3);
+
+    sup = (EPS < 0 || side1 < 0 || side2 < 0 || side3 < 0) ? INVALID_WORD : sup;
+
+    return sup ? sup : is_triangle(EPS, side1, side2, side3);
+
+}
+
+
+EXIT_CODE is_triangle (double EPS, double s1, double s2, double s3)
+{
+
+
+    if (s1 - s2 - s3 > EPS)
+    {
+        return NOT_TRIANGLE;
+    }
+
+    if (s2 - s1 - s3 > EPS)
+    {
+        return NOT_TRIANGLE;
+    }
+
+    if (s3 - s1 - s2 > EPS)
+    {
+        return NOT_TRIANGLE;
+    }
+
+    return TRIANGLE;
+
+
+}
+
+
