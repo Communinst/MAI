@@ -18,6 +18,8 @@ typedef enum
     PRESENCE,
     ABSENCE,
 
+    PROCESS_CREATE_FAIL,
+
 } EXIT_CODE;
 
 

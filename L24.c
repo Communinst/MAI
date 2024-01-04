@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 #include "Procedure.h"
 
@@ -46,9 +48,13 @@ void EC_handle (EXIT_CODE c)
             break;
 
         case BAD_ALLOC:
-            printf("Memory is gay!\n");
+            printf("Memory fault!\n");
             break;
         
+        case PROCESS_CREATE_FAIL:
+            printf("Process creation failed!\n");
+            break;
+
         default:
             break;
     }
@@ -184,31 +190,42 @@ EXIT_CODE processing (FILE *input, char *to_find)
     String *path = NULL;
     string_init(&path);
 
+    pid_t pid = 0;
+
     while (c > 0)
     {
 
-        FILE *data = NULL;
-
-        sup = get_path(path, &c, input);
-        sup = sup ? sup : file_proper(&data, path->word);
-
-        if (sup)
-        {
-            purge_str(path);
-            return sup;
-        }
-
-        sup = search_str(data, to_find);
-
-        if (sup == PRESENCE)
-        {
-            found++;
-            printf("Detected in %s file!\n", path->word);
-        }
-
-        purge_str(path);
-        fclose(data);
+        pid = fork();
         
+        if (pid < 0)
+        {
+            EC_handle(PROCESS_CREATE_FAIL);
+			return PROCESS_CREATE_FAIL;
+        }
+        else if (pid == 0)
+        {
+            FILE *data = NULL;
+
+            sup = get_path(path, &c, input);
+            sup = sup ? sup : file_proper(&data, path->word);
+
+            if (sup)
+            {
+                purge_str(path);
+                return sup;
+            }
+
+            sup = search_str(data, to_find);
+
+            if (sup == PRESENCE)
+            {
+                found++;
+                printf("Detected in %s file!\n", path->word);
+            }
+
+            purge_str(path);
+            fclose(data);
+        }
     }
 
     if (sup = ABSENCE && (!found))
