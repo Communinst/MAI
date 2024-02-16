@@ -207,7 +207,7 @@ EXIT_CODE display_vector (Vector_st *dest)
 
     printf("Allocated memory slots: %d\n", dest->capacity);
     printf("Occupied memory slots: %d\n", dest->stored);
-    printf("Actual items stored: \n\n");
+    printf("\nActual items stored: \n");
 
     Student **cr = dest->element;
 
@@ -309,8 +309,6 @@ EXIT_CODE get_vector (Vector_st *dest, char *in_name)
 
     dest->average_score /= (5.0 * dest->stored);
 
-    printf("\n%llf\n", dest->average_score);
-
     fclose(in_stream);
 
 
@@ -350,137 +348,6 @@ EXIT_CODE fill_vector (Vector_st *dest, FILE *in)
 
 }
 
-
-/*EXIT_CODE get_student_data (Student **dest, FILE *in, char *c)
-{
-
-    Student *temp = NULL;
-
-    unsigned int id = 0;
-
-    char *surname = NULL;
-
-    char *name = NULL;
-
-    char *group = NULL;
-
-    unsigned char *grades = NULL;
-
-    while ((*c != '\n') && *c > 0)
-    {
-
-        get_int(&id, in, c);
-
-        get_word(&surname, in, c);
-        get_word(&name, in, c);
-        get_word(&group, in, c);
-
-        get_grades(&grades, in, c);
-
-        student_constr(&temp, id, surname, name, group, grades);
-        
-        id = 0;
-        free_str(3, surname, name, group);
-        free(grades);
-
-    }
-
-    *dest = temp;
-
-    return OK;
-
-
-EXIT_CODE student_constr (Student **dest, unsigned int id, char *surname, char *name, char *group, unsigned char *grades)
-{
-
-    Student *buff = (Student *)malloc(sizeof(Student));
-
-    if (!buff)
-    {
-        return BAD_ALLOC;
-    }
-
-    buff->surname = (char*)malloc(sizeof(char) * (strlen(surname) + 1));
-
-    if (!buff->surname)
-    {
-        free(buff);
-        return BAD_ALLOC;
-    }
-
-    buff->name = (char *)malloc(sizeof(char) * (strlen(name) + 1));
-
-    if (!buff->name)
-    {
-
-        free(buff);
-
-        free(buff->surname);
-
-        return BAD_ALLOC;
-
-    }
-
-    buff->group = (char *)malloc(sizeof(char) * (strlen(group) + 1));
-
-    if (!buff->group)
-    {
-
-        free(buff);
-
-        free_str(2, buff->surname, buff->name);
-
-        return BAD_ALLOC;
-
-    }
-
-    int cnt = GRADESSIZE;
-
-    buff->grades = (unsigned char *)malloc(sizeof(unsigned char) * cnt);
-
-    if (!buff->grades)
-    {
-
-        free(buff);
-
-        free_str(3, buff->surname, buff->name, buff->group);
-
-        return BAD_ALLOC;
-
-
-    }
-
-    buff->id = id;
-
-    strcpy(buff->surname, surname);
-    strcpy(buff->name, name);
-    strcpy(buff->group, group);
-
-    
-
-    unsigned char *cr_src = grades;
-    unsigned char *cr_dst = buff->grades;
-
-    while (cnt--)
-    {
-
-        *cr_dst = *cr_src;
-
-        cr_dst++;
-
-        cr_src++;
-
-    }
-
-
-    *dest = buff;
-
-    return OK;
-
-}
-
-
-}*/
 
 
 EXIT_CODE get_student_data (Student **dest, FILE *in, char *c)
@@ -1161,4 +1028,3 @@ EXIT_CODE above_average (Vector_st *base, char *out_name, double EPS)
 
 
 }
-

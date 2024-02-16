@@ -79,6 +79,8 @@ size_t size_vector (Vector_st *inst);
 EXIT_CODE append_vector (Vector_st *dest, Student *to_add);
 
 
+EXIT_CODE destr_vector (Vector_st **dest);
+
 
 EXIT_CODE input_handle (int argc, char **argv);
 
